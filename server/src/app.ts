@@ -3,10 +3,12 @@ import cors from 'cors'
 import express, { Request, Response } from 'express'
 import userRouter from './routers/user'
 import documentRouter from './routers/document'
+import initFirebase from './api/firebase'
 
 dotenv.config()
 
 const app = express()
+initFirebase()
 const port = process.env.PORT
 
 app.use(express.json())

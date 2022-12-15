@@ -1,7 +1,9 @@
 import express from 'express'
 import asyncHandler from 'express-async-handler'
 
-const getUser: express.RequestHandler = (req, res) => {}
+const getUser: express.RequestHandler = (req, res) => {
+    const auth = req.headers.authorization;
+}
 
 const postUser: express.RequestHandler = (req, res) => {}
 
