@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL: string = 'http://localhost:8888'
+const API_URL = 'http://localhost:8888'
 
 interface SignUpRequest {
   email: string
@@ -9,7 +9,7 @@ interface SignUpRequest {
 }
 
 interface SignUpResponse {
-    signInToken: string
+  signInToken: string
 }
 
 const api = {

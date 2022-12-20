@@ -9,8 +9,9 @@ import {
   Modal,
   Typography,
 } from '@mui/material'
-import { ModalInterface, User } from '../../util/Types'
 import React from 'react'
+
+import { ModalInterface, User } from '../../util/Types'
 
 const collaborators: User[] = [
   {
@@ -33,12 +34,9 @@ export default function Collaborator(props: ModalInterface) {
       <DialogContent>
         <Typography gutterBottom>Current collaborators</Typography>
         <List>
-          {collaborators.map((collaborator) => (
-            <ListItem dense>
-              <ListItemText
-                primary={collaborator.username}
-                secondary={collaborator.email}
-              />
+          {collaborators.map(({ email, username }) => (
+            <ListItem key={email} dense>
+              <ListItemText primary={username} secondary={email} />
             </ListItem>
           ))}
         </List>

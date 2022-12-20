@@ -67,6 +67,16 @@ const theme = createTheme({
         },
       },
     },
+    MuiLink: {
+      defaultProps: {
+        underline: 'hover',
+      },
+      styleOverrides: {
+        root: {
+          fontWeight: 'bold',
+        },
+      },
+    },
   },
 })
 

@@ -3,14 +3,16 @@ import {
   Button,
   Container,
   FormGroup,
+  Link,
   Stack,
   TextField,
   Typography,
 } from '@mui/material'
-import React, { FormEvent, useState } from 'react'
-import { auth } from '../../api/firebase'
 import { signInWithEmailAndPassword } from 'firebase/auth'
-import { useNavigate } from 'react-router-dom'
+import React, { FormEvent, useState } from 'react'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+
+import { auth } from '../../api/firebase'
 
 interface SignInFormElement extends FormEvent<HTMLFormElement> {
   target: EventTarget & {
@@ -59,6 +61,12 @@ export default function SignIn() {
           <Button disabled={loading} type="submit" variant="contained">
             {loading ? 'Signing in...' : 'Sign in'}
           </Button>
+          <Typography>
+            No account?{' '}
+            <Link component={RouterLink} to="/signup">
+              Create account
+            </Link>
+          </Typography>
         </Stack>
       </Box>
     </Container>

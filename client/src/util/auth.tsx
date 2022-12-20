@@ -1,6 +1,5 @@
-import { createContext, useState, useEffect, useContext } from 'react'
-
 import { User } from 'firebase/auth'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 import { auth } from '../api/firebase'
 

@@ -1,3 +1,4 @@
+import { AccountCircleRounded, LogoutRounded } from '@mui/icons-material'
 import {
   AppBar,
   Avatar,
@@ -7,11 +8,12 @@ import {
   IconButton,
   ListItemIcon,
   Menu,
-  MenuItemProps,
   MenuItem,
+  MenuItemProps,
   Stack,
   Typography,
 } from '@mui/material'
+import { signOut } from 'firebase/auth'
 import React, {
   MouseEvent,
   MouseEventHandler,
@@ -21,10 +23,9 @@ import React, {
   useState,
 } from 'react'
 import { Link, Outlet, useNavigate, useRevalidator } from 'react-router-dom'
-import useUser from '../util/auth'
-import { AccountCircleRounded, LogoutRounded } from '@mui/icons-material'
-import { signOut } from 'firebase/auth'
+
 import { auth } from '../api/firebase'
+import useUser from '../util/auth'
 
 interface LayoutProps {
   children?: ReactElement
@@ -57,7 +58,7 @@ export default function Layout(props: LayoutProps) {
       <AppBar sx={{ zIndex: 100 }}>
         <Stack
           px={4}
-          py={2}
+          py={1}
           flexDirection="row"
           justifyContent="space-between"
           alignItems="center"
@@ -86,8 +87,8 @@ export default function Layout(props: LayoutProps) {
         >
           <MenuItem disabled sx={{ pointerEvents: 'none' }}>
             {user === null
-              ? 'Not logged in'
-              : `Logged in as ${user.displayName || user.email}`}
+              ? 'Not signed in'
+              : `Signed in as ${user.displayName || user.email}`}
           </MenuItem>
           <Divider />
           {user === null ? (
