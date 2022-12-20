@@ -17,16 +17,25 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import React, { ChangeEvent, useEffect, useState } from 'react'
-
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
 import useUser from '../../util/auth'
 import { debounce } from '../../util/helpsers'
+import api from "../../api/api";
+import { useNavigate } from 'react-router-dom'
+
+interface UpdateAccountFormElement extends FormEvent<HTMLFormElement> {
+  target: EventTarget & {
+    username: HTMLInputElement
+    profilePicture: HTMLInputElement
+  }
+}
 
 export default function Account() {
   const [user] = useUser()
   const [loading, setLoading] = useState<boolean>(false)
   const [photoUrlPreview, setPhotoUrlPreview] = useState<string>(user?.photoURL || '')
   const [photoUrlPreviewStatus, setPhotoUrlPreviewStatus] = useState<string>('')
+  const navigate = useNavigate()
 
   useEffect(() => {
     setPhotoUrlPreviewStatus('')
@@ -37,8 +46,17 @@ export default function Account() {
     })()
   }, [photoUrlPreview])
 
-  const updateAccount = () => {
-    console.log('Update')
+  const updateAccount = (e: UpdateAccountFormElement) => {
+    e.preventDefault()
+    setLoading(true)
+    const username = e.target.username.value
+    const profilePicture = e.target.profilePicture.value
+
+    api
+      .updateAccount({ username, profilePicture })
+      .then(() => navigate('/'))
+      .catch((error) => console.error(error))
+      .finally(() => setLoading(false))
   }
 
   if (user === null) return null

@@ -1,6 +1,7 @@
 import express from 'express'
 import asyncHandler from 'express-async-handler'
 import admin from 'firebase-admin'
+import { isValidHttpUrl } from '../util/Misc'
 
 const getUser: express.RequestHandler = async (req, res) => {
   const { uid, email, phoneNumber } = req.body
@@ -34,36 +35,16 @@ const createUser: express.RequestHandler = async (req, res) => {
   res.status(200).json({ signInToken: token })
 }
 
-/*
-{
-    "uid": "HpEeHEBzVRSBQWcAUVVdbyZixwz1",
-    "email": "15hannils@gmail.com",
-    "emailVerified": false,
-    "displayName": "Hampus",
-    "disabled": false,
-    "metadata": {
-        "lastSignInTime": null,
-        "creationTime": "Mon, 19 Dec 2022 12:14:56 GMT",
-        "lastRefreshTime": null
-    },
-    "tokensValidAfterTime": "Mon, 19 Dec 2022 12:14:56 GMT",
-    "providerData": [
-        {
-            "uid": "15hannils@gmail.com",
-            "displayName": "Hampus",
-            "email": "15hannils@gmail.com",
-            "providerId": "password"
-        }
-    ]
-}
-*/
-
 const patchUser: express.RequestHandler = async (req, res) => {
-  const { uid, props } = req.body
-  if (typeof req.body.uid !== 'string')
-    return res.status(400).json('Fileds missing in PATCH /user')
-  const response = await admin.auth().updateUser(uid, props)
-  res.status(200)
+  let props;
+  const token = req.headers.authorization;
+  const { username, profilePicture } = req.body
+  if (typeof token !== 'string') return res.status(401).json("Missing authorization for PATCH /user");
+  if (username === '') return res.sendStatus(400).json("Fields missing in PATCH /user");
+  isValidHttpUrl(profilePicture) ? props = {displayName: username, photoURL: profilePicture} : props = {displayName: username}
+  const decodedToken: admin.auth.DecodedIdToken = await admin.auth().verifyIdToken(token);
+  const response = await admin.auth().updateUser(decodedToken.uid, props)
+  if (response) res.json({username: response.displayName, profilePicture: response.photoURL});
 }
 
 const deleteUser: express.RequestHandler = async (req, res) => {

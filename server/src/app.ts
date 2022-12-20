@@ -9,7 +9,7 @@ dotenv.config()
 
 const app = express()
 initFirebase()
-const port = process.env.PORT
+const port = 8888
 
 app.use(express.json())
 app.use(cors({ origin: true }))
