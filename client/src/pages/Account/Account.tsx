@@ -18,10 +18,11 @@ import {
   Typography,
 } from '@mui/material'
 import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import api from '../../api/api'
 import useUser from '../../util/auth'
 import { debounce } from '../../util/helpsers'
-import api from "../../api/api";
-import { useNavigate } from 'react-router-dom'
 
 interface UpdateAccountFormElement extends FormEvent<HTMLFormElement> {
   target: EventTarget & {
@@ -70,8 +71,9 @@ export default function Account() {
         <ListItem divider>
           <ListItemText
             primary="Email"
-            secondary={`${user.email} ${user.emailVerified ? '(verified)' : '(not verified)'
-              }`}
+            secondary={`${user.email} ${
+              user.emailVerified ? '(verified)' : '(not verified)'
+            }`}
           />
         </ListItem>
         <ListItem divider>

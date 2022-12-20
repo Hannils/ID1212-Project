@@ -72,7 +72,9 @@ export default function Layout(props: LayoutProps) {
             {user === null ? (
               <AccountCircleRounded fontSize="large" />
             ) : (
-              <Avatar src={user.photoURL ? user.photoURL : undefined}>{user.photoURL ? undefined : initials}</Avatar>
+              <Avatar src={user.photoURL ? user.photoURL : undefined}>
+                {user.photoURL ? undefined : initials}
+              </Avatar>
             )}
           </IconButton>
         </Stack>
@@ -91,21 +93,23 @@ export default function Layout(props: LayoutProps) {
               : `Signed in as ${user.displayName || user.email}`}
           </MenuItem>
           <Divider />
-          {user === null ?
+          {user === null ? (
             <MenuItem component={Link} to="/signin" onClick={onClicker()}>
               Sign in
-            </MenuItem> :
+            </MenuItem>
+          ) : (
             <MenuItem component={Link} to="/account" onClick={onClicker()}>
               <ListItemIcon>
                 <AccountCircleRounded />
               </ListItemIcon>
               Account
             </MenuItem>
-          }
-          {user === null ?
+          )}
+          {user === null ? (
             <MenuItem component={Link} to="/signup" onClick={onClicker()}>
               Create an account
-            </MenuItem> :
+            </MenuItem>
+          ) : (
             <MenuItem
               onClick={onClicker(() => signOut(auth).then(() => navigate('/signin')))}
             >
@@ -114,7 +118,7 @@ export default function Layout(props: LayoutProps) {
               </ListItemIcon>
               Sign out
             </MenuItem>
-          }
+          )}
         </Menu>
       </AppBar>
       <Container>

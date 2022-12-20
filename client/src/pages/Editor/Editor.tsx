@@ -1,15 +1,21 @@
 import { EditRounded, PeopleRounded } from '@mui/icons-material'
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
+  CircularProgress,
   Container,
   FormGroup,
   Stack,
   TextField,
   Typography,
 } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 
+import api from '../../api/api'
+import { DocumentResponse, ErrorResponse } from '../../util/Types'
 import ChangeName from './ChangeName'
 import Collaborator from './Collaborator'
 
@@ -27,6 +33,46 @@ const dateTime = Intl.DateTimeFormat('sv-SE', {
 export default function Editor() {
   const [showCollaboratorModal, setShowCollaboratorModal] = useState<boolean>(false)
   const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
+  const { id } = useParams()
+  const [document, setDocument] = useState<
+    DocumentResponse | ErrorResponse | undefined | null
+  >(undefined)
+
+  useEffect(() => {
+    if (id === undefined) return
+    api
+      .getDocument({ id })
+      .then((res) => setDocument(res.data))
+      .catch((e) => setDocument({ type: 'error', message: e.message }))
+  }, [setDocument])
+
+  if (document === undefined) {
+    return (
+      <Box sx={{ minHeight: '80vh', display: 'grid', placeItems: 'center' }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  if (document === null) {
+    return (
+      <Alert severity="error">
+        <AlertTitle>Not found!</AlertTitle>
+        The document was not found or you are not an owner or collaborator of this
+        document
+      </Alert>
+    )
+  }
+
+  if (document.type === 'error') {
+    return (
+      <Alert severity="error">
+        <AlertTitle>Oh no!</AlertTitle>
+        There was an error: {document.message}
+      </Alert>
+    )
+  }
+
   return (
     <Box>
       <Collaborator
@@ -39,7 +85,7 @@ export default function Editor() {
       />
       <Stack direction="row" justifyContent="space-between">
         <Typography variant="h3" component="h1">
-          {document.name}
+          {document.title}
 
           <Typography>{dateTime.format(document.modified)}</Typography>
         </Typography>

@@ -1,6 +1,7 @@
 import express from 'express'
 import asyncHandler from 'express-async-handler'
 import admin from 'firebase-admin'
+
 import { isValidHttpUrl, requireAuth } from '../util/Misc'
 
 const getUser: express.RequestHandler = async (req, res) => {
@@ -8,7 +9,8 @@ const getUser: express.RequestHandler = async (req, res) => {
   let response
   if (typeof uid === 'string') response = admin.auth().getUser(uid)
   else if (typeof email === 'string') response = admin.auth().getUserByEmail(email)
-  else if (typeof phoneNumber === 'string') response = admin.auth().getUserByPhoneNumber(phoneNumber)
+  else if (typeof phoneNumber === 'string')
+    response = admin.auth().getUserByPhoneNumber(phoneNumber)
   else return res.status(400).json('Fields missing in GET /user')
   res.sendStatus(200).json(response)
 }
@@ -37,20 +39,19 @@ const createUser: express.RequestHandler = async (req, res) => {
 
 const patchUser: express.RequestHandler = async (req, res) => {
   const { username, profilePicture } = req.body
-  if (username === '') return res.sendStatus(400).json("Fields missing in PATCH /user");
-  
+  if (username === '') return res.sendStatus(400).json('Fields missing in PATCH /user')
+
   try {
     const response = await admin.auth().updateUser(res.locals.currentUser, {
       displayName: username,
       ...(isValidHttpUrl(profilePicture) && {
-        photoURL: profilePicture
-      })
+        photoURL: profilePicture,
+      }),
     })
-    res.sendStatus(200);
+    res.sendStatus(200)
   } catch (error) {
     res.sendStatus(500)
   }
-
 }
 
 const deleteUser: express.RequestHandler = async (req, res) => {
