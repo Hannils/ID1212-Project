@@ -72,7 +72,7 @@ export default function Layout(props: LayoutProps) {
             {user === null ? (
               <AccountCircleRounded fontSize="large" />
             ) : (
-              <Avatar>{initials}</Avatar>
+              <Avatar src={user.photoURL ? user.photoURL : undefined}>{user.photoURL ? undefined : initials}</Avatar>
             )}
           </IconButton>
         </Stack>
@@ -91,33 +91,30 @@ export default function Layout(props: LayoutProps) {
               : `Signed in as ${user.displayName || user.email}`}
           </MenuItem>
           <Divider />
-          {user === null ? (
-            <>
-              <MenuItem component={Link} to="/signin" onClick={onClicker()}>
-                Sign in
-              </MenuItem>
-              <MenuItem component={Link} to="/signup" onClick={onClicker()}>
-                Create an account
-              </MenuItem>
-            </>
-          ) : (
-            <>
-              <MenuItem component={Link} to="/account" onClick={onClicker()}>
-                <ListItemIcon>
-                  <AccountCircleRounded />
-                </ListItemIcon>
-                Account
-              </MenuItem>
-              <MenuItem
-                onClick={onClicker(() => signOut(auth).then(() => navigate('/signin')))}
-              >
-                <ListItemIcon>
-                  <LogoutRounded fontSize="small" />
-                </ListItemIcon>
-                Sign out
-              </MenuItem>
-            </>
-          )}
+          {user === null ?
+            <MenuItem component={Link} to="/signin" onClick={onClicker()}>
+              Sign in
+            </MenuItem> :
+            <MenuItem component={Link} to="/account" onClick={onClicker()}>
+              <ListItemIcon>
+                <AccountCircleRounded />
+              </ListItemIcon>
+              Account
+            </MenuItem>
+          }
+          {user === null ?
+            <MenuItem component={Link} to="/signup" onClick={onClicker()}>
+              Create an account
+            </MenuItem> :
+            <MenuItem
+              onClick={onClicker(() => signOut(auth).then(() => navigate('/signin')))}
+            >
+              <ListItemIcon>
+                <LogoutRounded fontSize="small" />
+              </ListItemIcon>
+              Sign out
+            </MenuItem>
+          }
         </Menu>
       </AppBar>
       <Container>

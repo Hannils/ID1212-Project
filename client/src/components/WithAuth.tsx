@@ -1,3 +1,4 @@
+import { CircularProgress, Box } from '@mui/material'
 import { FunctionComponent } from 'react'
 import { Navigate } from 'react-router-dom'
 
@@ -8,7 +9,8 @@ interface WithAuthInterface {
 }
 
 function WithAuth({ Page }: WithAuthInterface) {
-  const [user] = useUser()
+  const [user, loading] = useUser()
+  if (loading) return <Box sx={{ minHeight: '80vh', display: 'grid', placeItems: 'center' }}><CircularProgress /></Box>
   if (user === null) return <Navigate to="/signin" />
 
   return <Page />

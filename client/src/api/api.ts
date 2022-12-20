@@ -18,9 +18,17 @@ interface SignUpResponse {
   signInToken: string
 }
 
-interface UpdateResponse {
+interface UpdateUserResponse {
   username: string
   profilePicture?: string
+}
+
+interface CreateDocumentResponse {
+  documentId: string
+}
+
+async function getAuthedHeaders() {
+  return { headers: { Authorization: await auth.currentUser?.getIdToken(false) } }
 }
 
 const api = {
@@ -32,11 +40,17 @@ const api = {
     }),
 
   updateAccount: async ({ username, profilePicture }: UpdateAccount) => {
-    return axios.patch<UpdateResponse>(`${API_URL}/user`, {
+    return axios.patch<UpdateUserResponse>(`${API_URL}/user`, {
       username,
       profilePicture
-    }, { headers: { Authorization: await auth.currentUser?.getIdToken(false) } })
+    }, { ...(await getAuthedHeaders()) })
   },
+  createDocument: async ({ title }: Partial<Document>) => {
+    return axios.post<CreateDocumentResponse>(`${API_URL}/document`, {
+      title,
+    }, { ...(await getAuthedHeaders()) }
+    )
+  }
 }
 
 export default api

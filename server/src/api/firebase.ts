@@ -6,4 +6,5 @@ export default function initFirebase() {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as ServiceAccount),
   })
+  
 }

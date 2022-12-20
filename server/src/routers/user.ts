@@ -1,7 +1,7 @@
 import express from 'express'
 import asyncHandler from 'express-async-handler'
 import admin from 'firebase-admin'
-import { isValidHttpUrl } from '../util/Misc'
+import { isValidHttpUrl, requireAuth } from '../util/Misc'
 
 const getUser: express.RequestHandler = async (req, res) => {
   const { uid, email, phoneNumber } = req.body
@@ -36,32 +36,32 @@ const createUser: express.RequestHandler = async (req, res) => {
 }
 
 const patchUser: express.RequestHandler = async (req, res) => {
-  let props;
-  const token = req.headers.authorization;
   const { username, profilePicture } = req.body
-  if (typeof token !== 'string') return res.status(401).json("Missing authorization for PATCH /user");
   if (username === '') return res.sendStatus(400).json("Fields missing in PATCH /user");
-  isValidHttpUrl(profilePicture) ? props = {displayName: username, photoURL: profilePicture} : props = {displayName: username}
-  const decodedToken: admin.auth.DecodedIdToken = await admin.auth().verifyIdToken(token);
-  const response = await admin.auth().updateUser(decodedToken.uid, props)
-  if (response) res.json({username: response.displayName, profilePicture: response.photoURL});
+  
+  try {
+    const response = await admin.auth().updateUser(res.locals.currentUser, {
+      displayName: username,
+      ...(isValidHttpUrl(profilePicture) && {
+        photoURL: profilePicture
+      })
+    })
+    res.sendStatus(200);
+  } catch (error) {
+    res.sendStatus(500)
+  }
+
 }
 
 const deleteUser: express.RequestHandler = async (req, res) => {
-  const { uid } = req.body
-  if (typeof uid !== 'string')
-    return res.status(400).json('Fields missing in DELETE /user')
-  const response = await admin.auth().deleteUser(uid)
-  res.status(200)
+  await admin.auth().deleteUser(res.locals.currentUser)
+  res.sendStatus(200)
 }
-
-const signOut: express.RequestHandler = async (req, res) => {}
 
 const userRouter = express.Router()
 userRouter.get('/', asyncHandler(getUser))
 userRouter.post('/', asyncHandler(createUser))
-userRouter.patch('/', asyncHandler(patchUser))
-userRouter.delete('/', asyncHandler(deleteUser))
-userRouter.post('/signout', asyncHandler(signOut))
+userRouter.patch('/', requireAuth(asyncHandler(patchUser)))
+userRouter.delete('/', requireAuth(asyncHandler(deleteUser)))
 
 export default userRouter

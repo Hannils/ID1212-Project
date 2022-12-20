@@ -5,9 +5,10 @@ export interface User {
 }
 
 export interface Document {
-    id: string,
+    id?: BigInt,
     title: string,
-    modified: string,
-    created_at: string,
-    owner: string
+    modified?: Date,
+    created_at: Date,
+    owner: string,
+    content: Array<Object>,
 }

@@ -54,7 +54,7 @@ export default function Account() {
 
     api
       .updateAccount({ username, profilePicture })
-      .then(() => navigate('/'))
+      .then(() => user?.reload())
       .catch((error) => console.error(error))
       .finally(() => setLoading(false))
   }
@@ -70,9 +70,8 @@ export default function Account() {
         <ListItem divider>
           <ListItemText
             primary="Email"
-            secondary={`${user.email} ${
-              user.emailVerified ? '(verified)' : '(not verified)'
-            }`}
+            secondary={`${user.email} ${user.emailVerified ? '(verified)' : '(not verified)'
+              }`}
           />
         </ListItem>
         <ListItem divider>
@@ -125,7 +124,6 @@ export default function Account() {
                 </InputAdornment>
               ),
             }}
-            defaultValue={user.photoURL}
             variant="outlined"
           />
           <Button disabled={loading} type="submit" variant="contained">

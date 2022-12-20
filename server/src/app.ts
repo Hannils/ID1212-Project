@@ -4,22 +4,32 @@ import express, { Request, Response } from 'express'
 import userRouter from './routers/user'
 import documentRouter from './routers/document'
 import initFirebase from './api/firebase'
+import { initDatabase, selectDocuments } from './api/database'
+import { useAuth } from './util/Misc'
 
 dotenv.config()
 
-const app = express()
-initFirebase()
-const port = 8888
+async function init() {
+  const app = express()
+  initFirebase()
+  await initDatabase();
 
-app.use(express.json())
-app.use(cors({ origin: true }))
+  
+  app.use(express.json())
+  app.use(cors({ origin: true }))
+  app.use(useAuth)
+  
+  app.use('/user', userRouter)
+  app.use('/document', documentRouter)
+  
+  app.get('/', (req: Request, res: Response) => {
+    res.send('Express + TypeScript Server Hej hampus')
+  })
+  app.listen(process.env.PORT, () => {
+    console.log(`[server]: Server is running at https://localhost:${process.env.PORT}`)
+  })
+}
 
-app.use('/user', userRouter)
-app.use('/document', documentRouter)
+init()
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Express + TypeScript Server Hej hampus')
-})
-app.listen(port, () => {
-  console.log(`[server]: Server is running at https://localhost:${port}`)
-})
+
