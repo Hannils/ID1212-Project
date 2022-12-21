@@ -14,6 +14,7 @@ import React, { FormEvent, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import api from '../../api/api'
+import CreateDocument from './CreateDocument'
 
 const documents = [
   {
@@ -72,30 +73,21 @@ export default function Home() {
   }
   return (
     <Box>
-      <Button size="small" ref={createButton} onClick={() => setIsCreateOpen(true)}>
+      <Button
+        size="small"
+        variant="contained"
+        ref={createButton}
+        onClick={() => setIsCreateOpen(true)}
+      >
         Create document
       </Button>
-      <Popover
-        PaperProps={{
-          sx: { maxWidth: 300, width: '75%', p: 3 },
-        }}
+      <CreateDocument
         anchorEl={createButton.current}
         id="create-document-menu"
         open={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-      >
-        <Box
-          component="form"
-          sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
-          onSubmit={createDocument}
-        >
-          <Typography variant="h3">Create new document</Typography>
-          <TextField name="title" />
-          <Button type="submit" variant="contained">
-            Create
-          </Button>
-        </Box>
-      </Popover>
+        onCreate={createDocument}
+      />
       <Typography variant="h1">Your documents</Typography>
       <List disablePadding>
         {documents.map((doc) => (

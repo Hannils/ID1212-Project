@@ -5,7 +5,7 @@ import admin from 'firebase-admin'
 import { isValidHttpUrl, requireAuth } from '../util/Misc'
 
 const getUser: express.RequestHandler = async (req, res) => {
-  const { uid, email, phoneNumber } = req.body
+  const { uid, email, phoneNumber } = req.query
   let response
   if (typeof uid === 'string') response = admin.auth().getUser(uid)
   else if (typeof email === 'string') response = admin.auth().getUserByEmail(email)
