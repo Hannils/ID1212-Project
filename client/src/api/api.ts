@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { DocumentResponse, User } from '../util/Types'
+import { DocumentInterface, DocumentResponse, User } from '../util/Types'
 import { auth } from './firebase'
 
 const API_URL = 'http://localhost:8888'
@@ -29,7 +29,7 @@ interface CreateDocumentResponse {
   documentId: string
 }
 
-interface GetDocumentRequest {
+interface DocumentRequest {
   id: string
 }
 
@@ -70,7 +70,7 @@ const api = {
       { ...(await getAuthedHeaders()) },
     )
   },
-  getDocument: async ({ id }: GetDocumentRequest) => {
+  getDocument: async ({ id }: DocumentRequest) => {
     return axios.get<DocumentResponse>(`${API_URL}/document/${id}`, {
       ...(await getAuthedHeaders()),
     })
@@ -80,6 +80,15 @@ const api = {
     { params: {uid, phoneNumber, email},
      ...(await getAuthedHeaders()) },
     )
+  },
+  getDocuments: async () => {
+    return axios.get<DocumentInterface[]>(`${API_URL}/document/all`,
+    {...(await getAuthedHeaders())})
+  },
+  deleteDocument: async ({ id }: DocumentRequest) => {
+    return axios.delete(`${API_URL}/document/${id}`), {
+      ...(await getAuthedHeaders())
+    }
   }
 }
 

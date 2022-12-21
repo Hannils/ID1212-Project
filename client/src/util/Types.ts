@@ -3,10 +3,10 @@ export interface ModalInterface {
   onClose: VoidFunction
 }
 
-export interface Document {
+export interface DocumentInterface {
   id: string
-  name: string
-  modified: string
+  title: string
+  modified: Date
   owner: string
   created_at: string
 }

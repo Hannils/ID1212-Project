@@ -1,18 +1,16 @@
 import express from 'express'
 import asyncHandler from 'express-async-handler'
 
-import { insertDocument, selectDocument, selectDocuments } from '../api/database'
+import { dropDocument, insertDocument, selectDocument, selectDocuments } from '../api/database'
 import { requireAuth } from '../util/Misc'
 import { Document } from '../util/Types'
 
 const getDocument: express.RequestHandler = async (req, res) => {
-  const document = await selectDocument(res.locals.currentUser, req.params.id)
-  res.json(document)
+  res.json(await selectDocument(res.locals.currentUser, req.params.id))
 }
 
 const getAllDocuments: express.RequestHandler = async (req, res) => {
-  const documents = await selectDocuments(res.locals.currentUser)
-  console.log(documents)
+  res.json(await selectDocuments(res.locals.currentUser))
 }
 
 const createDocument: express.RequestHandler = async (req, res) => {
@@ -36,7 +34,10 @@ const createDocument: express.RequestHandler = async (req, res) => {
 
 const updateDocument: express.RequestHandler = async (req, res) => {}
 
-const deleteDocument: express.RequestHandler = async (req, res) => {}
+const deleteDocument: express.RequestHandler = async (req, res) => {
+  await dropDocument(res.locals.currentUser, req.params.id)
+  res.sendStatus(200);
+}
 
 const getShared: express.RequestHandler = async (req, res) => {}
 
@@ -52,7 +53,7 @@ documentRouter.get('/all', requireAuth(asyncHandler(getAllDocuments)))
 documentRouter.get('/:id', requireAuth(asyncHandler(getDocument)))
 documentRouter.post('/', requireAuth(asyncHandler(createDocument)))
 documentRouter.patch('/', requireAuth(asyncHandler(updateDocument)))
-documentRouter.delete('/', requireAuth(asyncHandler(deleteDocument)))
+documentRouter.delete('/:id', requireAuth(asyncHandler(deleteDocument)))
 documentRouter.get('/shared', requireAuth(asyncHandler(getShared)))
 documentRouter.get('/:id/collaborator', requireAuth(asyncHandler(getCollaborator)))
 documentRouter.post(

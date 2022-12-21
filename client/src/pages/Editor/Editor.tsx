@@ -7,9 +7,11 @@ import {
   CircularProgress,
   Container,
   FormGroup,
+  IconButton,
   Stack,
   TextField,
   Typography,
+  Tooltip,
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -86,6 +88,11 @@ export default function Editor() {
       <Stack direction="row" justifyContent="space-between">
         <Typography variant="h3" component="h1">
           {document.title}
+          <Tooltip title="Rename">
+          <IconButton size="small" onClick={() => setShowChangeNameModal(true)}>
+            <EditRounded sx={{width: "20px", height: "20px"}}/>
+          </IconButton>
+          </Tooltip>
 
           <Typography>{dateTime.format(document.modified)}</Typography>
         </Typography>
@@ -97,14 +104,6 @@ export default function Editor() {
             onClick={() => setShowCollaboratorModal(true)}
           >
             Collaborators
-          </Button>
-          <Button
-            size="small"
-            startIcon={<EditRounded />}
-            variant="contained"
-            onClick={() => setShowChangeNameModal(true)}
-          >
-            Change name
           </Button>
         </Stack>
       </Stack>

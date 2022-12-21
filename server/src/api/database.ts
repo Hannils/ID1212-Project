@@ -58,34 +58,11 @@ export async function selectDocument(owner: string, docId: string) {
     docId,
   ])
   return toConfiguration(res.rows[0])
-  //client.query<InternalConfiguration>(
-  //    'SELECT * FROM document WHERE OWNER = $1 AND document_id = $2',
-  //    [owner, docId],
-  //    (err, res) => {
-  //        if (err) {
-  //            console.log(err.stack)
-  //            return null;
-  //        }
-  //        else
-  //            return toConfiguration(res.rows[0]);
-  //    })
 }
 
 export async function selectDocuments(owner: string) {
   const res = await queryDatabase('SELECT * FROM document WHERE owner = $1', [owner])
   return res.rows.map(toConfiguration)
-  //const arr: Configuration[] = await new Promise((resolve, reject) => {
-  //    client.query<InternalConfiguration>(
-  //        'SELECT * FROM document WHERE owner = $1',
-  //        [owner],
-  //        (err, res) => {
-  //            if (err)
-  //                return reject(err.message)
-  //
-  //            resolve(res.rows.map(toConfiguration))
-  //        })
-  //})
-  //return arr;
 }
 
 export async function insertDocument(document: Document) {
@@ -101,4 +78,9 @@ export async function insertDocument(document: Document) {
   )
 
   return res.rows[0].id
+}
+
+export async function dropDocument(owner: string, id: string) {
+  const res = await queryDatabase('DELETE FROM document WHERE owner = $1 AND id = $2', [owner, id])
+  return toConfiguration(res.rows[0]);
 }

@@ -40,12 +40,12 @@ interface FindCollaboratorEvent extends FormEvent<HTMLFormElement> {
 export default function Collaborator(props: ModalInterface) {
   const { open, onClose } = props
   const [user] = useUser()
-  const [collaborators, setCollaborators] = useState<User[]>(() => collaborators)
+  //const [collaborators, setCollaborators] = useState<User[]>(() => collaborators)
 
 
   const findUser = (e: FindCollaboratorEvent) => {
     const email = e.target.email.value
-    api.getUser({ email  }).then(res => setCollaborators(current => [...current, res.data]) )
+    //api.getUser({ email  }).then(res => setCollaborators(current => [...current, res.data]) )
   }
 
   return (

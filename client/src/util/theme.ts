@@ -1,7 +1,13 @@
 import { createTheme } from '@mui/material'
+import React from 'react';
+
+
 
 const theme = createTheme({
   palette: {
+    warning: {
+      main: '#e53e3e'
+    },
     primary: {
       main: '#283845',
     },
