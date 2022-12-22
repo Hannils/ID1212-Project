@@ -26,6 +26,7 @@ import { Link, Outlet, useNavigate, useRevalidator } from 'react-router-dom'
 
 import { auth } from '../api/firebase'
 import useUser from '../util/auth'
+import UserAvatar from './UserAvatar'
 
 interface LayoutProps {
   children?: ReactElement
@@ -38,12 +39,6 @@ export default function Layout(props: LayoutProps) {
 
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false)
   const avatarRef = useRef(null)
-
-  const initials = useMemo<string>(
-    () =>
-      user === null || user.displayName === null ? '' : getInitials(user.displayName),
-    [user],
-  )
 
   function onClicker(cb?: CallableFunction): React.MouseEventHandler {
     return (e) => {
@@ -72,9 +67,7 @@ export default function Layout(props: LayoutProps) {
             {user === null ? (
               <AccountCircleRounded fontSize="large" />
             ) : (
-              <Avatar src={user.photoURL ? user.photoURL : undefined}>
-                {user.photoURL ? undefined : initials}
-              </Avatar>
+              <UserAvatar user={user} />
             )}
           </IconButton>
         </Stack>
@@ -126,11 +119,4 @@ export default function Layout(props: LayoutProps) {
       </Container>
     </Box>
   )
-}
-
-function getInitials(name: string): string {
-  const rgx = new RegExp(/(\p{L}{1})\p{L}+/, 'gu')
-  const initials = [...name.matchAll(rgx)] || []
-
-  return ((initials.shift()?.[1] || '') + (initials.pop()?.[1] || '')).toUpperCase()
 }

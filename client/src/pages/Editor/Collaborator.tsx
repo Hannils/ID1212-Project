@@ -1,80 +1,126 @@
+import { AddRounded } from '@mui/icons-material'
 import {
+  Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogContent,
+  DialogProps,
   DialogTitle,
+  Divider,
   List,
   ListItem,
+  ListItemAvatar,
   ListItemText,
   Modal,
-  Typography,
-  Divider,
+  Stack,
   TextField,
-  Box,
+  Tooltip,
+  Typography,
 } from '@mui/material'
-import React, { FormEvent, useState } from 'react'
-import useUser from '../../util/auth'
+import { User } from 'firebase/auth'
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
+
 import api from '../../api/api'
+import UserAvatar from '../../components/UserAvatar'
+import useUser from '../../util/auth'
+import { debounce, isEmail } from '../../util/helpsers'
+import { Document } from '../../util/Types'
 
-import { ModalInterface, User } from '../../util/Types'
-
-const collaborators: User[] = [
-  {
-    id: 'id1',
-    username: 'Hampus',
-    email: 'blablabla@gmail.com',
-  },
-  {
-    id: 'id2',
-    username: 'Kalle',
-    email: 'etcetcetc@gmail.com',
-  },
-]
-
-interface FindCollaboratorEvent extends FormEvent<HTMLFormElement> {
-  target: EventTarget & {
-    email: HTMLInputElement
-  }
+interface CollaboratorProps extends DialogProps {
+  document: Document
 }
 
-export default function Collaborator(props: ModalInterface) {
-  const { open, onClose } = props
+export default function Collaborator(props: CollaboratorProps) {
+  const { open, onClose, document } = props
   const [user] = useUser()
-  //const [collaborators, setCollaborators] = useState<User[]>(() => collaborators)
+  const [searchUser, setSearchUser] = useState<undefined | null | User>(null)
+  const [searchValue, setSearchValue] = useState<string>('')
 
+  const addCollaborator = () => {
+    if (!searchUser) return
 
-  const findUser = (e: FindCollaboratorEvent) => {
-    const email = e.target.email.value
-    //api.getUser({ email  }).then(res => setCollaborators(current => [...current, res.data]) )
+    api.addCollaborator({ userId: searchUser.uid, documentId: document.id })
   }
+
+  useEffect(() => {
+    if (!isEmail(searchValue)) return
+    setSearchUser(undefined)
+
+    debounce((email: string) =>
+      api.getUser({ email }).then((res) => setSearchUser(res.data)),
+    )(searchValue)
+  }, [searchValue])
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Collaborators</DialogTitle>
-      <DialogContent sx={{ minWidth: '400px', textAlign: 'center' }}>
-        <Box component="form" onSubmit={findUser}>
+      <DialogTitle variant="h4">Collaborators</DialogTitle>
+      <DialogContent
+        sx={{ minWidth: '400px', display: 'flex', flexDirection: 'column', gap: 2 }}
+      >
+        <Box>
+          <Typography variant="h5">Add people</Typography>
           <TextField
+            margin="normal"
+            fullWidth
+            value={searchValue}
             name="email"
-            sx={{ minWidth: '350px' }}
-            label="Add collaborators..."
-            placeholder="Search by email"
+            label="Find users by email"
+            placeholder="name@example.com"
+            onChange={(e) => setSearchValue(e.target.value)}
           />
+          <Stack alignItems="flex-end">
+            <Tooltip
+              title={searchUser === null && searchValue !== '' ? 'No user found' : ''}
+              disableInteractive
+            >
+              <span>
+                <Button
+                  onClick={addCollaborator}
+                  disabled={!searchUser}
+                  startIcon={
+                    searchUser === undefined ? (
+                      <CircularProgress size={18} />
+                    ) : (
+                      <AddRounded />
+                    )
+                  }
+                  type="submit"
+                  variant="outlined"
+                >
+                  Add{!searchUser || ` "${searchUser.displayName}" to your document`}
+                </Button>
+              </span>
+            </Tooltip>
+          </Stack>
         </Box>
-        <Typography gutterBottom>People who have access</Typography>
-        <List>
-          <ListItem dense>
-            <ListItemText
-              primary={user?.displayName + ' (owner)'}
-              secondary={user?.email}
-            />
-          </ListItem>
-          <Divider></Divider>
-          {collaborators.map(({ email, username }) => (
-            <ListItem key={email} dense>
-              <ListItemText primary={username} secondary={email} />
+        <Box>
+          <Typography variant="h5" gutterBottom>
+            People who have access
+          </Typography>
+          <List>
+            <ListItem dense>
+              {user === null || (
+                <ListItemAvatar>
+                  <UserAvatar user={user} />
+                </ListItemAvatar>
+              )}
+              <ListItemText
+                primary={user?.displayName + ' (owner)'}
+                secondary={user?.email}
+              />
             </ListItem>
-          ))}
-        </List>
+            {document.collaborators.length > 0 && <Divider />}
+            {document.collaborators.map((user) => (
+              <ListItem key={user.email} dense>
+                <ListItemAvatar>
+                  <UserAvatar user={user} />
+                </ListItemAvatar>
+                <ListItemText primary={user.displayName} secondary={user.email} />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
       </DialogContent>
     </Dialog>
   )

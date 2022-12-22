@@ -1,3 +1,5 @@
+import { EditRounded } from '@mui/icons-material'
+import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Box,
   Button,
@@ -13,16 +15,14 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import DeleteIcon from '@mui/icons-material/Delete'
 import React, { FormEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import api from '../../api/api'
-import CreateDocument from './CreateDocument'
-import { EditRounded } from '@mui/icons-material'
+import { Document, DocumentPreview } from '../../util/Types'
 import ChangeName from '../Editor/ChangeName'
 import DeleteDocument from '../Editor/DeleteDocument'
-import { DocumentInterface } from '../../util/Types'
+import CreateDocument from './CreateDocument'
 
 // const documents = [
 //   {
@@ -68,18 +68,17 @@ interface CreateDocumentEvent extends FormEvent<HTMLFormElement> {
   }
 }
 
-
 export default function Home() {
   const navigate = useNavigate()
   const createButton = useRef(null)
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false)
   const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
   const [showDeleteDocumentModal, setShowDeleteDocumentModal] = useState<boolean>(false)
-  const [documents, setDocuments] = useState<DocumentInterface[]>([])
+  const [documents, setDocuments] = useState<DocumentPreview[]>([])
 
   useEffect(() => {
     api.getDocuments().then((res) => setDocuments(res.data))
-  }, [documents])
+  }, [setDocuments])
 
   const createDocument = (e: CreateDocumentEvent) => {
     e.preventDefault()
@@ -88,11 +87,10 @@ export default function Home() {
       .then((res) => navigate('/document/' + res.data.documentId))
   }
 
-  const openDocument = (id: string) => {
+  const openDocument = (id: string | number) => {
     navigate('/document/' + id)
   }
   return (
-
     <Box>
       <ChangeName
         open={showChangeNameModal}

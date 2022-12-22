@@ -6,9 +6,11 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/index.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/app.js\"",
+    "dev": "pm2 start src/app.ts --watch && pm2 logs app",
+    "dev-stop":"pm2 stop app",
     "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore",
-    "lint:format": "prettier  --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,md,json}\" "
+    "lint:format": "prettier  --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,md,json}\" ",
+    "dev-conf": "pm2 install typescript"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -27,13 +29,12 @@
     "@types/slate": "^0.47.11",
     "@typescript-eslint/eslint-plugin": "^5.46.1",
     "@typescript-eslint/parser": "^5.46.1",
-    "concurrently": "^7.6.0",
     "eslint": "^8.29.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-simple-import-sort": "^8.0.0",
-    "nodemon": "^2.0.20",
+    "pm2": "^5.2.2",
     "prettier": "^2.8.1",
     "typescript": "^4.9.4"
   }

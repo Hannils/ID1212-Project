@@ -1,6 +1,7 @@
 import axios from 'axios'
+import { User } from 'firebase/auth'
 
-import { DocumentInterface, DocumentResponse, User } from '../util/Types'
+import { Document, DocumentPreview } from '../util/Types'
 import { auth } from './firebase'
 
 const API_URL = 'http://localhost:8888'
@@ -26,7 +27,7 @@ interface UpdateUserResponse {
 }
 
 interface CreateDocumentResponse {
-  documentId: string
+  documentId: string | number
 }
 
 interface DocumentRequest {
@@ -34,9 +35,14 @@ interface DocumentRequest {
 }
 
 interface GetUserRequest {
-  uid?: string,
-  phoneNumber?: string,
+  uid?: string
+  phoneNumber?: string
   email?: string
+}
+
+interface AddCollaboratorRequest {
+  userId: string
+  documentId: string | number
 }
 
 async function getAuthedHeaders() {
@@ -71,25 +77,33 @@ const api = {
     )
   },
   getDocument: async ({ id }: DocumentRequest) => {
-    return axios.get<DocumentResponse>(`${API_URL}/document/${id}`, {
+    return axios.get<Document | null>(`${API_URL}/document/${id}`, {
       ...(await getAuthedHeaders()),
     })
   },
-  getUser: async ({uid, phoneNumber, email}: GetUserRequest) => {
-    return axios.get<User>(`${API_URL}/user`, 
-    { params: {uid, phoneNumber, email},
-     ...(await getAuthedHeaders()) },
-    )
+  getUser: async ({ uid, phoneNumber, email }: GetUserRequest) => {
+    return axios.get<User | null>(`${API_URL}/user`, {
+      params: { uid, phoneNumber, email },
+      ...(await getAuthedHeaders()),
+    })
   },
   getDocuments: async () => {
-    return axios.get<DocumentInterface[]>(`${API_URL}/document/all`,
-    {...(await getAuthedHeaders())})
+    return axios.get<DocumentPreview[]>(`${API_URL}/document/all`, {
+      ...(await getAuthedHeaders()),
+    })
   },
   deleteDocument: async ({ id }: DocumentRequest) => {
-    return axios.delete(`${API_URL}/document/${id}`), {
-      ...(await getAuthedHeaders())
-    }
-  }
+    return (
+      axios.delete(`${API_URL}/document/${id}`),
+      {
+        ...(await getAuthedHeaders()),
+      }
+    )
+  },
+  addCollaborator: async ({ userId, documentId }: AddCollaboratorRequest) =>
+    axios.post(`${API_URL}/document/${documentId}/collaborator/${userId}`, undefined, {
+      ...(await getAuthedHeaders()),
+    }),
 }
 
 export default api

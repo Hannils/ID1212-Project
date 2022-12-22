@@ -7,3 +7,7 @@ export function debounce(func: CallableFunction, timeout = 300) {
     }, timeout)
   }
 }
+
+export function isEmail(string: string) {
+  return string.match(/^\S+@\S+\.\S+$/) != null
+}

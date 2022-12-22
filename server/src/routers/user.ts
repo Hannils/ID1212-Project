@@ -1,18 +1,25 @@
 import express from 'express'
 import asyncHandler from 'express-async-handler'
 import admin from 'firebase-admin'
+import { UserRecord } from 'firebase-admin/auth'
 
 import { isValidHttpUrl, requireAuth } from '../util/Misc'
 
 const getUser: express.RequestHandler = async (req, res) => {
   const { uid, email, phoneNumber } = req.query
-  let response
-  if (typeof uid === 'string') response = admin.auth().getUser(uid)
-  else if (typeof email === 'string') response = admin.auth().getUserByEmail(email)
-  else if (typeof phoneNumber === 'string')
-    response = admin.auth().getUserByPhoneNumber(phoneNumber)
-  else return res.status(400).json('Fields missing in GET /user')
-  res.sendStatus(200).json(response)
+  let response: UserRecord | null
+  try {
+    if (typeof uid === 'string') response = await admin.auth().getUser(uid)
+    else if (typeof email === 'string')
+      response = await admin.auth().getUserByEmail(email)
+    else if (typeof phoneNumber === 'string')
+      response = await admin.auth().getUserByPhoneNumber(phoneNumber)
+    else return res.status(400).json('Fields missing in GET /user')
+  } catch (error) {
+    // User was not found
+    response = null
+  }
+  res.json(response)
 }
 
 const createUser: express.RequestHandler = async (req, res) => {
