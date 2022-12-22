@@ -88,9 +88,18 @@ const api = {
     })
   },
   getDocuments: async () => {
-    return axios.get<DocumentPreview[]>(`${API_URL}/document/all`, {
-      ...(await getAuthedHeaders()),
-    })
+    return axios
+      .get<DocumentPreview[]>(`${API_URL}/document/all`, {
+        ...(await getAuthedHeaders()),
+      })
+      .then((res) => res.data)
+  },
+  getShared: async () => {
+    return axios
+      .get<DocumentPreview[]>(`${API_URL}/document/shared`, {
+        ...(await getAuthedHeaders()),
+      })
+      .then((res) => res.data)
   },
   deleteDocument: async ({ id }: DocumentRequest) => {
     return (

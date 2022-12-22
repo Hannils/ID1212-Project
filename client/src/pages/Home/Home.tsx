@@ -1,6 +1,8 @@
-import { EditRounded } from '@mui/icons-material'
+import { AddRounded, EditRounded } from '@mui/icons-material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
   Card,
@@ -11,6 +13,7 @@ import {
   ListItemIcon,
   ListItemText,
   Popover,
+  Skeleton,
   TextField,
   Tooltip,
   Typography,
@@ -23,44 +26,8 @@ import { Document, DocumentPreview } from '../../util/Types'
 import ChangeName from '../Editor/ChangeName'
 import DeleteDocument from '../Editor/DeleteDocument'
 import CreateDocument from './CreateDocument'
-
-// const documents = [
-//   {
-//     name: 'Testing 1',
-//     id: '11',
-//     modified: new Date(),
-//   },
-//   {
-//     name: 'Testing 2',
-//     id: 'id2',
-//     modified: new Date(),
-//   },
-//   {
-//     name: 'Testing 3',
-//     id: 'id3',
-//     modified: new Date(),
-//   },
-// ]
-const shared = [
-  {
-    name: 'Testing 4',
-    id: 'id4',
-    modified: new Date(),
-    owner: 'Hampus',
-  },
-  {
-    name: 'Testing 5',
-    id: 'id5',
-    modified: new Date(),
-    owner: 'Hampus',
-  },
-  {
-    name: 'Testing 6',
-    id: 'id6',
-    modified: new Date(),
-    owner: 'Hampus',
-  },
-]
+import { useQuery } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 
 interface CreateDocumentEvent extends FormEvent<HTMLFormElement> {
   target: EventTarget & {
@@ -70,15 +37,20 @@ interface CreateDocumentEvent extends FormEvent<HTMLFormElement> {
 
 export default function Home() {
   const navigate = useNavigate()
+  const documentsQuery = useQuery<DocumentPreview[], AxiosError>(
+    ['document', 'all'],
+    api.getDocuments,
+  )
+  const sharedQuery = useQuery<DocumentPreview[], AxiosError>(
+    ['document', 'shared'],
+    api.getShared,
+  )
+
   const createButton = useRef(null)
+
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false)
   const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
   const [showDeleteDocumentModal, setShowDeleteDocumentModal] = useState<boolean>(false)
-  const [documents, setDocuments] = useState<DocumentPreview[]>([])
-
-  useEffect(() => {
-    api.getDocuments().then((res) => setDocuments(res.data))
-  }, [setDocuments])
 
   const createDocument = (e: CreateDocumentEvent) => {
     e.preventDefault()
@@ -90,6 +62,7 @@ export default function Home() {
   const openDocument = (id: string | number) => {
     navigate('/document/' + id)
   }
+
   return (
     <Box>
       <ChangeName
@@ -101,10 +74,12 @@ export default function Home() {
         onClose={() => setShowDeleteDocumentModal(false)}
       />
       <Button
-        size="small"
+        startIcon={<AddRounded />}
+        size="large"
         variant="contained"
         ref={createButton}
         onClick={() => setIsCreateOpen(true)}
+        sx={{ mb: 5 }}
       >
         Create document
       </Button>
@@ -112,56 +87,125 @@ export default function Home() {
         anchorEl={createButton.current}
         id="create-document-menu"
         open={isCreateOpen}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
         onClose={() => setIsCreateOpen(false)}
         onCreate={createDocument}
       />
       <Typography variant="h1">Your documents</Typography>
-      <List disablePadding>
-        {documents.map((doc) => (
-          <ListItem
-            key={doc.id}
-            secondaryAction={
-              <>
-                <Tooltip title="Rename">
-                  <IconButton
-                    edge="end"
-                    sx={{ mr: '4px' }}
-                    onClick={() => setShowChangeNameModal(true)}
-                  >
-                    <EditRounded />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Delete">
-                  <IconButton edge="end" onClick={() => setShowDeleteDocumentModal(true)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
-              </>
-            }
-            disablePadding
-          >
-            <ListItemButton onClick={() => openDocument(doc.id)}>
-              <ListItemText
-                primary={doc.title}
-                secondary={new Date().toLocaleDateString('sv-SE')}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
+      {documentsQuery.isLoading ? (
+        <List disablePadding>
+          {[...new Array(3)].map(() => (
+            <ListItem disablePadding>
+              <ListItemText primary={<Skeleton />} secondary={<Skeleton />} />
+            </ListItem>
+          ))}
+        </List>
+      ) : documentsQuery.isSuccess ? (
+        <List disablePadding>
+          {documentsQuery.data.map((doc) => (
+            <>
+              <ListItem
+                key={doc.id}
+                secondaryAction={
+                  <>
+                    <Tooltip title="Rename">
+                      <IconButton
+                        edge="end"
+                        sx={{ mr: '4px' }}
+                        onClick={() => setShowChangeNameModal(true)}
+                      >
+                        <EditRounded />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete">
+                      <IconButton
+                        edge="end"
+                        onClick={() => setShowDeleteDocumentModal(true)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </>
+                }
+                disablePadding
+              >
+                <ListItemButton onClick={() => openDocument(doc.id)}>
+                  <ListItemText
+                    primary={doc.title}
+                    secondary={new Date().toLocaleDateString('sv-SE')}
+                  />
+                </ListItemButton>
+              </ListItem>
+            </>
+          ))}
+        </List>
+      ) : (
+        documentsQuery.isError && (
+          <Alert severity="error">
+            <AlertTitle>Error</AlertTitle>
+            {documentsQuery.error.message}
+          </Alert>
+        )
+      )}
       <Typography variant="h2">Shared documents</Typography>
-      <List disablePadding>
-        {shared.map((doc) => (
-          <ListItem key={doc.id}>
-            <ListItemButton>
-              <ListItemText
-                primary={`${doc.name} by ${doc.owner}`}
-                secondary={doc.modified.toLocaleDateString('sv-SE')}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
+      {sharedQuery.isLoading ? (
+        <List disablePadding>
+          {[...new Array(3)].map(() => (
+            <ListItem disablePadding>
+              <ListItemText primary={<Skeleton />} secondary={<Skeleton />} />
+            </ListItem>
+          ))}
+        </List>
+      ) : sharedQuery.isSuccess ? (
+        <List disablePadding>
+          {sharedQuery.data.map((doc) => (
+            <>
+              <ListItem
+                key={doc.id}
+                secondaryAction={
+                  <>
+                    <Tooltip title="Rename">
+                      <IconButton
+                        edge="end"
+                        sx={{ mr: '4px' }}
+                        onClick={() => setShowChangeNameModal(true)}
+                      >
+                        <EditRounded />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete">
+                      <IconButton
+                        edge="end"
+                        onClick={() => setShowDeleteDocumentModal(true)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </>
+                }
+                disablePadding
+              >
+                <ListItemButton onClick={() => openDocument(doc.id)}>
+                  <ListItemText
+                    primary={doc.title}
+                    secondary={new Date().toLocaleDateString('sv-SE')}
+                  />
+                </ListItemButton>
+              </ListItem>
+            </>
+          ))}
+        </List>
+      ) : (
+        sharedQuery.isError && (
+          <Alert severity="error">
+            <AlertTitle>Error</AlertTitle>
+            {sharedQuery.error.message}
+          </Alert>
+        )
+      )}
     </Box>
   )
 }

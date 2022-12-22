@@ -8,22 +8,20 @@ import {
   insertDocument,
   selectDocument,
   selectDocuments,
+  selectShared,
 } from '../api/database'
 import { requireAuth } from '../util/Misc'
-import { Document } from '../util/Types'
+import { Document, DocumentPreview } from '../util/Types'
 
 const getDocument: express.RequestHandler = async (req, res) => {
   const document = await selectDocument(res.locals.currentUser, req.params.id)
   if (document === null) return res.sendStatus(404)
-
-  console.log('Document', document)
 
   res.json(document)
 }
 
 const getAllDocuments: express.RequestHandler = async (req, res) => {
   const documents = await selectDocuments(res.locals.currentUser)
-  console.log('Documents', documents)
   res.json(documents)
 }
 
@@ -52,7 +50,12 @@ const deleteDocument: express.RequestHandler = async (req, res) => {
   res.sendStatus(200)
 }
 
-const getShared: express.RequestHandler = async (req, res) => {}
+const getShared: express.RequestHandler = async (req, res) => {
+    console.log("Running select shared: ")
+  const documents: DocumentPreview[] = []// await selectShared(res.locals.currentUser)
+  console.log('Shared documents', documents)
+  res.json(documents)
+}
 
 const getCollaborator: express.RequestHandler = async (req, res) => {}
 

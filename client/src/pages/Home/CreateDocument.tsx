@@ -21,7 +21,7 @@ export default function CreateDocument({ onCreate, ...props }: CreateDocumentPro
         onSubmit={onCreate}
       >
         <Typography variant="h3">Create new document</Typography>
-        <TextField name="title" />
+        <TextField name="title" label="Document title" />
         <Button type="submit" variant="contained">
           Create
         </Button>
