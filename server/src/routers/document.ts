@@ -51,8 +51,7 @@ const deleteDocument: express.RequestHandler = async (req, res) => {
 }
 
 const getShared: express.RequestHandler = async (req, res) => {
-    console.log("Running select shared: ")
-  const documents: DocumentPreview[] = []// await selectShared(res.locals.currentUser)
+  const documents = await selectShared(res.locals.currentUser)
   console.log('Shared documents', documents)
   res.json(documents)
 }
@@ -81,11 +80,11 @@ const deleteCollaborator: express.RequestHandler = async (req, res) => {}
 const documentRouter = express.Router()
 
 documentRouter.get('/all', requireAuth(asyncHandler(getAllDocuments)))
+documentRouter.get('/shared', requireAuth(asyncHandler(getShared)))
 documentRouter.get('/:id', requireAuth(asyncHandler(getDocument)))
 documentRouter.post('/', requireAuth(asyncHandler(createDocument)))
 documentRouter.patch('/', requireAuth(asyncHandler(updateDocument)))
 documentRouter.delete('/:id', requireAuth(asyncHandler(deleteDocument)))
-documentRouter.get('/shared', requireAuth(asyncHandler(getShared)))
 documentRouter.get('/:id/collaborator', requireAuth(asyncHandler(getCollaborator)))
 documentRouter.post(
   '/:id/collaborator/:userId',

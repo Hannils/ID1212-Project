@@ -18,6 +18,8 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import { useQuery } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 import React, { FormEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -26,8 +28,6 @@ import { Document, DocumentPreview } from '../../util/Types'
 import ChangeName from '../Editor/ChangeName'
 import DeleteDocument from '../Editor/DeleteDocument'
 import CreateDocument from './CreateDocument'
-import { useQuery } from '@tanstack/react-query'
-import { AxiosError } from 'axios'
 
 interface CreateDocumentEvent extends FormEvent<HTMLFormElement> {
   target: EventTarget & {
@@ -97,8 +97,8 @@ export default function Home() {
       <Typography variant="h1">Your documents</Typography>
       {documentsQuery.isLoading ? (
         <List disablePadding>
-          {[...new Array(3)].map(() => (
-            <ListItem disablePadding>
+          {[...new Array(3)].map((_, index) => (
+            <ListItem disablePadding key={index}>
               <ListItemText primary={<Skeleton />} secondary={<Skeleton />} />
             </ListItem>
           ))}
@@ -153,8 +153,8 @@ export default function Home() {
       <Typography variant="h2">Shared documents</Typography>
       {sharedQuery.isLoading ? (
         <List disablePadding>
-          {[...new Array(3)].map(() => (
-            <ListItem disablePadding>
+          {[...new Array(3)].map((_, index) => (
+            <ListItem disablePadding key={index}>
               <ListItemText primary={<Skeleton />} secondary={<Skeleton />} />
             </ListItem>
           ))}

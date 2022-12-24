@@ -139,12 +139,10 @@ export async function selectShared(userId: string) {
   const query = `
         SELECT id, title, created_at, owner, modified FROM public.collaborator
         INNER JOIN public.document ON document_id=id
-        WHERE user_id = '$1'
+        WHERE user_id = $1
     `
 
-  console.log(userId)
   const res = await queryDatabase(query, [userId])
-  console.log('res', res)
   return res.rows.map(toDocumentPreview)
 }
 
