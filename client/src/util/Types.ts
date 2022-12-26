@@ -10,8 +10,7 @@ export interface Document {
   title: string
   modified?: Date
   created_at: Date
-  owner: string
-  collaborators: Array<User>
+  owner: User
   content: Array<Object>
 }
 
@@ -20,7 +19,6 @@ export interface DocumentPreview {
   title: string
   modified?: Date
   created_at: Date
-  owner: string
 }
 
 export interface ErrorResponse {

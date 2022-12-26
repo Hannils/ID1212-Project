@@ -1,5 +1,7 @@
-import { AddRounded } from '@mui/icons-material'
+import { AddRounded, DeleteRounded } from '@mui/icons-material'
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
   CircularProgress,
@@ -8,6 +10,7 @@ import {
   DialogProps,
   DialogTitle,
   Divider,
+  IconButton,
   List,
   ListItem,
   ListItemAvatar,
@@ -18,6 +21,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import { useQuery } from '@tanstack/react-query'
 import { User } from 'firebase/auth'
 import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
 
@@ -26,6 +30,7 @@ import UserAvatar from '../../components/UserAvatar'
 import useUser from '../../util/auth'
 import { debounce, isEmail } from '../../util/helpsers'
 import { Document } from '../../util/Types'
+import CollaboratorModalContent from './CollaboratorModalContent'
 
 interface CollaboratorProps extends DialogProps {
   document: Document
@@ -34,23 +39,21 @@ interface CollaboratorProps extends DialogProps {
 export default function Collaborator(props: CollaboratorProps) {
   const { open, onClose, document } = props
   const [user] = useUser()
-  const [searchUser, setSearchUser] = useState<undefined | null | User>(null)
-  const [searchValue, setSearchValue] = useState<string>('')
+  const {
+    data: collaborators,
+    isLoading,
+    isError,
+    isSuccess,
+    isRefetching,
+  } = useQuery(
+    ['document', document.id, 'collaborators'],
+    () => api.getCollaborators(document.id),
+    { enabled: open },
+  )
 
-  const addCollaborator = () => {
-    if (!searchUser) return
+  if (user === null) return null
 
-    api.addCollaborator({ userId: searchUser.uid, documentId: document.id })
-  }
-
-  useEffect(() => {
-    if (!isEmail(searchValue)) return
-    setSearchUser(undefined)
-
-    debounce((email: string) =>
-      api.getUser({ email }).then((res) => setSearchUser(res.data)),
-    )(searchValue)
-  }, [searchValue])
+  console.log('isRefetching', isRefetching)
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -58,69 +61,19 @@ export default function Collaborator(props: CollaboratorProps) {
       <DialogContent
         sx={{ minWidth: '400px', display: 'flex', flexDirection: 'column', gap: 2 }}
       >
-        <Box>
-          <Typography variant="h5">Add people</Typography>
-          <TextField
-            margin="normal"
-            fullWidth
-            value={searchValue}
-            name="email"
-            label="Find users by email"
-            placeholder="name@example.com"
-            onChange={(e) => setSearchValue(e.target.value)}
+        {isLoading ? (
+          <Box sx={{ minHeight: '400px', display: 'grid', placeItems: 'center' }}>
+            <CircularProgress />
+          </Box>
+        ) : isError || !isSuccess ? (
+          <Alert>
+            <AlertTitle>Oh no</AlertTitle> Something went wrong
+          </Alert>
+        ) : (
+          <CollaboratorModalContent
+            {...{ document, user, collaborators, isRefetching }}
           />
-          <Stack alignItems="flex-end">
-            <Tooltip
-              title={searchUser === null && searchValue !== '' ? 'No user found' : ''}
-              disableInteractive
-            >
-              <span>
-                <Button
-                  onClick={addCollaborator}
-                  disabled={!searchUser}
-                  startIcon={
-                    searchUser === undefined ? (
-                      <CircularProgress size={18} />
-                    ) : (
-                      <AddRounded />
-                    )
-                  }
-                  type="submit"
-                  variant="outlined"
-                >
-                  Add{!searchUser || ` "${searchUser.displayName}" to your document`}
-                </Button>
-              </span>
-            </Tooltip>
-          </Stack>
-        </Box>
-        <Box>
-          <Typography variant="h5" gutterBottom>
-            People who have access
-          </Typography>
-          <List>
-            <ListItem dense>
-              {user === null || (
-                <ListItemAvatar>
-                  <UserAvatar user={user} />
-                </ListItemAvatar>
-              )}
-              <ListItemText
-                primary={user?.displayName + ' (owner)'}
-                secondary={user?.email}
-              />
-            </ListItem>
-            {document.collaborators.length > 0 && <Divider />}
-            {document.collaborators.map((user) => (
-              <ListItem key={user.email} dense>
-                <ListItemAvatar>
-                  <UserAvatar user={user} />
-                </ListItemAvatar>
-                <ListItemText primary={user.displayName} secondary={user.email} />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
+        )}
       </DialogContent>
     </Dialog>
   )

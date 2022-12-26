@@ -1,4 +1,4 @@
-import { AddRounded, EditRounded } from '@mui/icons-material'
+import { AddRounded, EditRounded, PersonOffRounded } from '@mui/icons-material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Alert,
@@ -166,25 +166,14 @@ export default function Home() {
               <ListItem
                 key={doc.id}
                 secondaryAction={
-                  <>
-                    <Tooltip title="Rename">
-                      <IconButton
-                        edge="end"
-                        sx={{ mr: '4px' }}
-                        onClick={() => setShowChangeNameModal(true)}
-                      >
-                        <EditRounded />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <IconButton
-                        edge="end"
-                        onClick={() => setShowDeleteDocumentModal(true)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </>
+                  <Tooltip title="Remove me from document">
+                    <IconButton
+                      edge="end"
+                      onClick={() => setShowDeleteDocumentModal(true)}
+                    >
+                      <PersonOffRounded />
+                    </IconButton>
+                  </Tooltip>
                 }
                 disablePadding
               >

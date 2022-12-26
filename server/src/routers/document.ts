@@ -3,19 +3,31 @@ import asyncHandler from 'express-async-handler'
 import { auth } from 'firebase-admin'
 
 import {
+  dropCollaborator,
   dropDocument,
   insertCollaborator,
   insertDocument,
+  selectCollaborators,
   selectDocument,
   selectDocuments,
   selectShared,
 } from '../api/database'
 import { requireAuth } from '../util/Misc'
 import { Document, DocumentPreview } from '../util/Types'
+import collaboratorRouter from './collaborator'
 
 const getDocument: express.RequestHandler = async (req, res) => {
-  const document = await selectDocument(res.locals.currentUser, req.params.id)
+  const document = await selectDocument(req.params.id)
+  console.log(document, res.locals.currentUser)
   if (document === null) return res.sendStatus(404)
+
+  const collaborators = await selectCollaborators(document)
+
+  if (
+    res.locals.currentUser !== document.owner.uid &&
+    !collaborators.some(({ uid }) => uid === res.locals.currentUser)
+  )
+    return res.sendStatus(403)
 
   res.json(document)
 }
@@ -34,7 +46,6 @@ const createDocument: express.RequestHandler = async (req, res) => {
     title,
     created_at: new Date(),
     owner: res.locals.currentUser,
-    collaborators: [],
     content: [],
   }
 
@@ -56,28 +67,9 @@ const getShared: express.RequestHandler = async (req, res) => {
   res.json(documents)
 }
 
-const getCollaborator: express.RequestHandler = async (req, res) => {}
-
-const addCollaborator: express.RequestHandler = async (req, res) => {
-  const { id, userId } = req.params
-
-  if (typeof userId !== 'string')
-    return res.status(400).send('Fields missing in POST /collaborator')
-
-  const document = await selectDocument(res.locals.currentUser, id)
-
-  if (document === null) return res.sendStatus(401)
-
-  // TODO CHECK IF ALREADY COLLABORATOR
-
-  await insertCollaborator(document, userId)
-
-  res.sendStatus(200)
-}
-
-const deleteCollaborator: express.RequestHandler = async (req, res) => {}
-
 const documentRouter = express.Router()
+
+documentRouter.use('/:id/collaborator', collaboratorRouter)
 
 documentRouter.get('/all', requireAuth(asyncHandler(getAllDocuments)))
 documentRouter.get('/shared', requireAuth(asyncHandler(getShared)))
@@ -85,14 +77,5 @@ documentRouter.get('/:id', requireAuth(asyncHandler(getDocument)))
 documentRouter.post('/', requireAuth(asyncHandler(createDocument)))
 documentRouter.patch('/', requireAuth(asyncHandler(updateDocument)))
 documentRouter.delete('/:id', requireAuth(asyncHandler(deleteDocument)))
-documentRouter.get('/:id/collaborator', requireAuth(asyncHandler(getCollaborator)))
-documentRouter.post(
-  '/:id/collaborator/:userId',
-  requireAuth(asyncHandler(addCollaborator)),
-)
-documentRouter.delete(
-  '/:id/collaborator/:collaborator',
-  requireAuth(asyncHandler(deleteCollaborator)),
-)
 
 export default documentRouter

@@ -1,5 +1,5 @@
 import { auth } from 'firebase-admin'
-import { UserRecord } from 'firebase-admin/auth'
+import { UserIdentifier, UserRecord } from 'firebase-admin/auth'
 import { Client, QueryResult } from 'pg'
 
 import { Document, DocumentPreview } from '../util/Types'
@@ -9,29 +9,18 @@ async function toDocument(data: any): Promise<Document | null> {
 
   const id = parseInt(data.id)
   const title: string = data.title
-  const owner: string = data.owner
+  const ownerString: string = data.owner
   const created_at = new Date(data.created_at)
   const modified: Date | undefined = !data.modified ? undefined : new Date(data.modified)
   const content: Array<Object> = JSON.parse(data.content)
-  const collaboratorsRaw: string | null = data.collaborators
-
-  console.log('document', data)
 
   if (isNaN(id)) return null
-  if (typeof title !== 'string' || typeof owner !== 'string') return null
+  if (typeof title !== 'string' || typeof ownerString !== 'string') return null
   if (modified !== undefined && isNaN(modified.getTime())) return null
-  if (collaboratorsRaw !== null && typeof collaboratorsRaw !== 'string') return null
   if (isNaN(created_at.getTime())) return null
   if (!Array.isArray(content)) return null
 
-  let collaborators: Array<UserRecord> = []
-
-  if (collaboratorsRaw !== null) {
-    const result = await auth().getUsers(
-      collaboratorsRaw.split(',').map((uid: string) => ({ uid })),
-    )
-    collaborators = result.users
-  }
+  const owner = await auth().getUser(ownerString)
 
   return Object.freeze<Document>({
     id,
@@ -39,7 +28,6 @@ async function toDocument(data: any): Promise<Document | null> {
     owner,
     created_at,
     modified,
-    collaborators,
     content: data.content,
   })
 }
@@ -54,7 +42,7 @@ function toDocumentPreview(data: any): DocumentPreview | null {
   }
 
   if (isNaN(data.id)) return null
-  if (typeof data.title !== 'string' || typeof data.owner !== 'string') return null
+  if (typeof data.title !== 'string') return null
   if (data.modified !== null && isNaN(data.modified)) return null
   if (isNaN(data.created_at)) return null
 
@@ -63,8 +51,14 @@ function toDocumentPreview(data: any): DocumentPreview | null {
     title: data.title,
     modified: data.modified,
     created_at: data.created_at,
-    owner: data.owner,
   })
+}
+
+async function toCollaborators(data: any[]) {
+  const collaboratorIds: string[] = data.map((row) => row.user_id)
+  const result = await auth().getUsers(collaboratorIds.map((uid) => ({ uid })))
+
+  return result.users
 }
 
 interface DatabaseDocument {
@@ -77,11 +71,12 @@ interface DatabaseDocument {
 
 function toDatabaseDocument({
   content,
-  collaborators,
+  owner,
   ...doc
 }: Omit<Document, 'id'>): DatabaseDocument {
   const databaseDoc: DatabaseDocument = {
     ...doc,
+    owner: owner.uid,
     content: JSON.stringify(content),
   }
 
@@ -113,23 +108,21 @@ async function queryDatabase(query: string, data: any[]): Promise<QueryResult<an
   })
 }
 
-export async function selectDocument(owner: string, docId: string) {
+export async function selectDocument(docId: string) {
   const query = `
-    SELECT id, title, created_at, owner, modified, content, STRING_AGG(user_id, ',') AS Collaborators
+    SELECT id, title, created_at, owner, modified, content
     FROM public.document 
-    FULL JOIN public.collaborator ON document_id = id 
-    WHERE owner = $1 AND id = $2
-    GROUP BY id
+    WHERE id = $1
   `
 
-  const res = await queryDatabase(query, [owner, docId])
+  const res = await queryDatabase(query, [docId])
   console.log(res.rows[0])
   return await toDocument(res.rows[0])
 }
 
 export async function selectDocuments(owner: string) {
   const res = await queryDatabase(
-    'SELECT id, title, modified, created_at, owner FROM document WHERE owner = $1',
+    'SELECT id, title, modified, created_at FROM document WHERE owner = $1',
     [owner],
   )
   return res.rows.map(toDocumentPreview)
@@ -137,7 +130,7 @@ export async function selectDocuments(owner: string) {
 
 export async function selectShared(userId: string) {
   const query = `
-        SELECT id, title, created_at, owner, modified FROM public.collaborator
+        SELECT id, title, created_at, modified FROM public.collaborator
         INNER JOIN public.document ON document_id=id
         WHERE user_id = $1
     `
@@ -170,8 +163,23 @@ export async function dropDocument(owner: string, id: string) {
   return await toDocument(res.rows[0])
 }
 
+export async function selectCollaborators(document: Document) {
+  const res = await queryDatabase(
+    'SELECT user_id FROM public.collaborator WHERE document_id=$1',
+    [document.id],
+  )
+
+  return await toCollaborators(res.rows)
+}
 export async function insertCollaborator(document: Document, userId: string) {
   await queryDatabase('INSERT INTO collaborator(document_id, user_id) VALUES($1, $2)', [
+    document.id,
+    userId,
+  ])
+}
+
+export async function dropCollaborator(document: Document, userId: string) {
+  await queryDatabase('DELETE FROM collaborator WHERE document_id=$1 AND user_id=$2', [
     document.id,
     userId,
   ])

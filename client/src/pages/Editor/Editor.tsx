@@ -13,6 +13,8 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import { useQuery } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
@@ -36,15 +38,17 @@ export default function Editor() {
   const [showCollaboratorModal, setShowCollaboratorModal] = useState<boolean>(false)
   const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
   const { id } = useParams()
-  const [document, setDocument] = useState<Document | undefined | null>(undefined)
 
-  useEffect(() => {
-    if (id === undefined) return
-    api.getDocument({ id }).then((res) => setDocument(res.data))
-    /* .catch((e) => setDocument({ type: 'error', message: e.message })) */
-  }, [setDocument])
+  const {
+    data: document,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<Document, AxiosError>(['document', id], () => api.getDocument(id || ''), {
+    enabled: id !== undefined,
+  })
 
-  if (document === undefined) {
+  if (isLoading) {
     return (
       <Box sx={{ minHeight: '80vh', display: 'grid', placeItems: 'center' }}>
         <CircularProgress />
@@ -52,24 +56,24 @@ export default function Editor() {
     )
   }
 
-  if (document === null) {
+  if (isError && error.status === 403) {
     return (
       <Alert severity="error">
-        <AlertTitle>Not found!</AlertTitle>
+        <AlertTitle>No access!</AlertTitle>
         The document was not found or you are not an owner or collaborator of this
         document
       </Alert>
     )
   }
 
-  /* if (document?.type === 'error') {
+  if (isError) {
     return (
       <Alert severity="error">
         <AlertTitle>Oh no!</AlertTitle>
-        There was an error: {document.message}
+        There was an error: {error.message}
       </Alert>
     )
-  } */
+  }
 
   return (
     <Box>

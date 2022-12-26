@@ -12,7 +12,7 @@ interface SignUpRequest {
   password: string
 }
 
-interface UpdateAccount {
+interface UpdateAccountRequest {
   username: string
   profilePicture?: string
 }
@@ -30,19 +30,10 @@ interface CreateDocumentResponse {
   documentId: string | number
 }
 
-interface DocumentRequest {
-  id: string
-}
-
 interface GetUserRequest {
   uid?: string
   phoneNumber?: string
   email?: string
-}
-
-interface AddCollaboratorRequest {
-  userId: string
-  documentId: string | number
 }
 
 async function getAuthedHeaders() {
@@ -57,7 +48,7 @@ const api = {
       password,
     }),
 
-  updateAccount: async ({ username, profilePicture }: UpdateAccount) => {
+  updateAccount: async ({ username, profilePicture }: UpdateAccountRequest) => {
     return axios.patch<UpdateUserResponse>(
       `${API_URL}/user`,
       {
@@ -76,10 +67,12 @@ const api = {
       { ...(await getAuthedHeaders()) },
     )
   },
-  getDocument: async ({ id }: DocumentRequest) => {
-    return axios.get<Document | null>(`${API_URL}/document/${id}`, {
-      ...(await getAuthedHeaders()),
-    })
+  getDocument: async (id: string | number) => {
+    return axios
+      .get<Document>(`${API_URL}/document/${id}`, {
+        ...(await getAuthedHeaders()),
+      })
+      .then((res) => res.data)
   },
   getUser: async ({ uid, phoneNumber, email }: GetUserRequest) => {
     return axios.get<User | null>(`${API_URL}/user`, {
@@ -101,7 +94,7 @@ const api = {
       })
       .then((res) => res.data)
   },
-  deleteDocument: async ({ id }: DocumentRequest) => {
+  deleteDocument: async (id: string | number) => {
     return (
       axios.delete(`${API_URL}/document/${id}`),
       {
@@ -109,8 +102,22 @@ const api = {
       }
     )
   },
-  addCollaborator: async ({ userId, documentId }: AddCollaboratorRequest) =>
-    axios.post(`${API_URL}/document/${documentId}/collaborator/${userId}`, undefined, {
+  getCollaborators: async (documentId: string | number) =>
+    axios
+      .get<User[]>(`${API_URL}/document/${documentId}/collaborator`, {
+        ...(await getAuthedHeaders()),
+      })
+      .then(({ data }) => data),
+  addCollaborator: async (userId: string, documentId: string | number) =>
+    axios.post(
+      `${API_URL}/document/${documentId}/collaborator`,
+      { userId },
+      {
+        ...(await getAuthedHeaders()),
+      },
+    ),
+  removeCollaborator: async (userId: string, documentId: string | number) =>
+    axios.delete(`${API_URL}/document/${documentId}/collaborator/${userId}`, {
       ...(await getAuthedHeaders()),
     }),
 }
