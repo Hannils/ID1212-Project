@@ -2,7 +2,7 @@ import { auth } from 'firebase-admin'
 import { UserIdentifier, UserRecord } from 'firebase-admin/auth'
 import { Client, QueryResult } from 'pg'
 
-import { Document, DocumentPreview } from '../util/Types'
+import { Document, DocumentPreview, Element } from '../util/Types'
 
 async function toDocument(data: any): Promise<Document | null> {
   if (!data) return null
@@ -12,7 +12,7 @@ async function toDocument(data: any): Promise<Document | null> {
   const ownerString: string = data.owner
   const created_at = new Date(data.created_at)
   const modified: Date | undefined = !data.modified ? undefined : new Date(data.modified)
-  const content: Array<Object> = JSON.parse(data.content)
+  const content: Element[] = JSON.parse(data.content)
 
   if (isNaN(id)) return null
   if (typeof title !== 'string' || typeof ownerString !== 'string') return null
@@ -61,26 +61,12 @@ async function toCollaborators(data: any[]) {
   return result.users
 }
 
-interface DatabaseDocument {
+export interface DatabaseDocument {
   title: string
   modified?: Date
   created_at: Date
   owner: string
   content: string
-}
-
-function toDatabaseDocument({
-  content,
-  owner,
-  ...doc
-}: Omit<Document, 'id'>): DatabaseDocument {
-  const databaseDoc: DatabaseDocument = {
-    ...doc,
-    owner: owner.uid,
-    content: JSON.stringify(content),
-  }
-
-  return databaseDoc
 }
 
 const client = new Client({
@@ -108,7 +94,7 @@ async function queryDatabase(query: string, data: any[]): Promise<QueryResult<an
   })
 }
 
-export async function selectDocument(docId: string) {
+export async function selectDocument(docId: string | number) {
   const query = `
     SELECT id, title, created_at, owner, modified, content
     FROM public.document 
@@ -116,7 +102,6 @@ export async function selectDocument(docId: string) {
   `
 
   const res = await queryDatabase(query, [docId])
-  console.log(res.rows[0])
   return await toDocument(res.rows[0])
 }
 
@@ -139,23 +124,31 @@ export async function selectShared(userId: string) {
   return res.rows.map(toDocumentPreview)
 }
 
-export async function insertDocument(document: Omit<Document, 'id'>) {
-  const databaseDocument = toDatabaseDocument(document)
-  const values = Object.keys(databaseDocument)
+export async function insertDocument(document: DatabaseDocument) {
+  const values = Object.keys(document)
     .map((_, i) => `$${i + 1}`)
     .join(', ')
 
   const res = await queryDatabase(
-    `INSERT INTO document(${Object.keys(databaseDocument).join(
+    `INSERT INTO document(${Object.keys(document).join(
       ', ',
     )}) VALUES(${values}) RETURNING id`,
-    Object.values(databaseDocument),
+    Object.values(document),
   )
 
   return res.rows[0].id
 }
 
+export async function updateDocument(id: string, title: string) {
+  await queryDatabase('UPDATE document SET title = $1, modified = $2 WHERE id = $3', [
+    title,
+    new Date(),
+    id,
+  ])
+}
+
 export async function dropDocument(owner: string, id: string) {
+  await queryDatabase('DELETE FROM collaborator WHERE document_id = $1', [id])
   const res = await queryDatabase('DELETE FROM document WHERE owner = $1 AND id = $2', [
     owner,
     id,

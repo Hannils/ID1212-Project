@@ -23,7 +23,6 @@ const getUser: express.RequestHandler = async (req, res) => {
 }
 
 const createUser: express.RequestHandler = async (req, res) => {
-  console.log(req.body)
   const { email, password, username } = req.body
   if (
     typeof email !== 'string' ||

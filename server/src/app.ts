@@ -1,11 +1,13 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express, { Request, Response } from 'express'
+import { Server } from 'socket.io'
 
 import { initDatabase, selectDocuments } from './api/database'
 import initFirebase from './api/firebase'
 import documentRouter from './routers/document'
 import userRouter from './routers/user'
+import initSocket from './socket/main'
 import { useAuth } from './util/Misc'
 
 dotenv.config()
@@ -13,6 +15,7 @@ dotenv.config()
 async function init() {
   const app = express()
   initFirebase()
+  initSocket()
   await initDatabase()
 
   app.use(express.json())

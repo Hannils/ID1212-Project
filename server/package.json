@@ -7,7 +7,7 @@
     "build": "npx tsc",
     "start": "node dist/index.js",
     "dev": "pm2 start src/app.ts --watch && pm2 logs app",
-    "dev-stop":"pm2 stop app",
+    "dev-stop": "pm2 stop app",
     "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore",
     "lint:format": "prettier  --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,md,json}\" ",
     "dev-conf": "pm2 install typescript"
@@ -19,7 +19,8 @@
     "express-async-handler": "^1.2.0",
     "firebase-admin": "^11.3.0",
     "firebase-functions": "^4.1.1",
-    "pg": "^8.8.0"
+    "pg": "^8.8.0",
+    "socket.io": "^4.5.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",

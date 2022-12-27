@@ -72,7 +72,17 @@ const api = {
       .get<Document>(`${API_URL}/document/${id}`, {
         ...(await getAuthedHeaders()),
       })
-      .then((res) => res.data)
+      .then(
+        ({ data }) =>
+          ({
+            id: data.id,
+            title: data.title,
+            modified: data.modified === undefined ? undefined : new Date(data.modified),
+            created_at: new Date(data.created_at),
+            owner: data.owner,
+            content: data.content,
+          } as Document),
+      )
   },
   getUser: async ({ uid, phoneNumber, email }: GetUserRequest) => {
     return axios.get<User | null>(`${API_URL}/user`, {
@@ -85,23 +95,39 @@ const api = {
       .get<DocumentPreview[]>(`${API_URL}/document/all`, {
         ...(await getAuthedHeaders()),
       })
-      .then((res) => res.data)
+      .then(({ data }) =>
+        data.map(
+          (doc) =>
+            ({
+              id: doc.id,
+              title: doc.title,
+              modified: doc.modified === undefined ? undefined : new Date(doc.modified),
+              created_at: new Date(doc.created_at),
+            } as DocumentPreview),
+        ),
+      )
   },
   getShared: async () => {
     return axios
       .get<DocumentPreview[]>(`${API_URL}/document/shared`, {
         ...(await getAuthedHeaders()),
       })
-      .then((res) => res.data)
+      .then(({ data }) =>
+        data.map(
+          (doc) =>
+            ({
+              id: doc.id,
+              title: doc.title,
+              modified: doc.modified === undefined ? undefined : new Date(doc.modified),
+              created_at: new Date(doc.created_at),
+            } as DocumentPreview),
+        ),
+      )
   },
-  deleteDocument: async (id: string | number) => {
-    return (
-      axios.delete(`${API_URL}/document/${id}`),
-      {
-        ...(await getAuthedHeaders()),
-      }
-    )
-  },
+  deleteDocument: async (id: string | number) =>
+    axios.delete(`${API_URL}/document/${id}`, {
+      ...(await getAuthedHeaders()),
+    }),
   getCollaborators: async (documentId: string | number) =>
     axios
       .get<User[]>(`${API_URL}/document/${documentId}/collaborator`, {
@@ -120,6 +146,15 @@ const api = {
     axios.delete(`${API_URL}/document/${documentId}/collaborator/${userId}`, {
       ...(await getAuthedHeaders()),
     }),
+  updateDocument: async (documentId: string | number, title: string) => {
+    axios.patch(
+      `${API_URL}/document/${documentId}`,
+      {
+        title,
+      },
+      { ...(await getAuthedHeaders()) },
+    )
+  },
 }
 
 export default api

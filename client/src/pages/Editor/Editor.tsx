@@ -20,23 +20,10 @@ import { useParams } from 'react-router-dom'
 
 import api from '../../api/api'
 import { Document, ErrorResponse } from '../../util/Types'
-import ChangeName from './ChangeName'
-import Collaborator from './Collaborator'
-
-const document = {
-  name: 'Document 1',
-  id: 'id1',
-  modified: new Date(),
-}
-
-const dateTime = Intl.DateTimeFormat('sv-SE', {
-  dateStyle: 'long',
-  timeStyle: 'short',
-})
+import EditorPage from './EditorPage'
+import useRealtime from './useRealtime'
 
 export default function Editor() {
-  const [showCollaboratorModal, setShowCollaboratorModal] = useState<boolean>(false)
-  const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
   const { id } = useParams()
 
   const {
@@ -75,39 +62,5 @@ export default function Editor() {
     )
   }
 
-  return (
-    <Box>
-      <Collaborator
-        document={document}
-        open={showCollaboratorModal}
-        onClose={() => setShowCollaboratorModal(false)}
-      />
-      <ChangeName
-        open={showChangeNameModal}
-        onClose={() => setShowChangeNameModal(false)}
-      />
-      <Stack direction="row" justifyContent="space-between">
-        <Typography variant="h3" component="h1">
-          {document.title}
-          <Tooltip title="Rename">
-            <IconButton size="small" onClick={() => setShowChangeNameModal(true)}>
-              <EditRounded sx={{ width: '20px', height: '20px' }} />
-            </IconButton>
-          </Tooltip>
-
-          <Typography>{dateTime.format(document.modified)}</Typography>
-        </Typography>
-        <Stack direction="row" spacing={2}>
-          <Button
-            size="small"
-            startIcon={<PeopleRounded />}
-            variant="contained"
-            onClick={() => setShowCollaboratorModal(true)}
-          >
-            Collaborators
-          </Button>
-        </Stack>
-      </Stack>
-    </Box>
-  )
+  return <EditorPage document={document} />
 }

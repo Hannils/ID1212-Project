@@ -53,8 +53,6 @@ export default function Collaborator(props: CollaboratorProps) {
 
   if (user === null) return null
 
-  console.log('isRefetching', isRefetching)
-
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle variant="h4">Collaborators</DialogTitle>

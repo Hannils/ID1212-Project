@@ -3,6 +3,7 @@ import asyncHandler from 'express-async-handler'
 import { auth } from 'firebase-admin'
 
 import {
+  DatabaseDocument,
   dropCollaborator,
   dropDocument,
   insertCollaborator,
@@ -11,6 +12,7 @@ import {
   selectDocument,
   selectDocuments,
   selectShared,
+  updateDocument,
 } from '../api/database'
 import { requireAuth } from '../util/Misc'
 import { Document, DocumentPreview } from '../util/Types'
@@ -18,7 +20,6 @@ import collaboratorRouter from './collaborator'
 
 const getDocument: express.RequestHandler = async (req, res) => {
   const document = await selectDocument(req.params.id)
-  console.log(document, res.locals.currentUser)
   if (document === null) return res.sendStatus(404)
 
   const collaborators = await selectCollaborators(document)
@@ -42,11 +43,11 @@ const createDocument: express.RequestHandler = async (req, res) => {
   if (typeof title !== 'string')
     return res.status(400).send('Fields missing in POST /document')
 
-  const document: Omit<Document, 'id'> = {
+  const document: DatabaseDocument = {
     title,
     created_at: new Date(),
     owner: res.locals.currentUser,
-    content: [],
+    content: '[]',
   }
 
   const documentId = await insertDocument(document)
@@ -54,7 +55,15 @@ const createDocument: express.RequestHandler = async (req, res) => {
   return res.json({ documentId })
 }
 
-const updateDocument: express.RequestHandler = async (req, res) => {}
+const patchDocument: express.RequestHandler = async (req, res) => {
+  const { title } = req.body
+  const { id } = req.params
+  if (typeof title !== 'string')
+    return res.status(400).send('Fields missing in PATCH /document')
+  await updateDocument(id, title)
+
+  res.sendStatus(200)
+}
 
 const deleteDocument: express.RequestHandler = async (req, res) => {
   await dropDocument(res.locals.currentUser, req.params.id)
@@ -63,19 +72,17 @@ const deleteDocument: express.RequestHandler = async (req, res) => {
 
 const getShared: express.RequestHandler = async (req, res) => {
   const documents = await selectShared(res.locals.currentUser)
-  console.log('Shared documents', documents)
   res.json(documents)
 }
 
 const documentRouter = express.Router()
 
 documentRouter.use('/:id/collaborator', collaboratorRouter)
-
 documentRouter.get('/all', requireAuth(asyncHandler(getAllDocuments)))
 documentRouter.get('/shared', requireAuth(asyncHandler(getShared)))
 documentRouter.get('/:id', requireAuth(asyncHandler(getDocument)))
 documentRouter.post('/', requireAuth(asyncHandler(createDocument)))
-documentRouter.patch('/', requireAuth(asyncHandler(updateDocument)))
+documentRouter.patch('/:id', requireAuth(asyncHandler(patchDocument)))
 documentRouter.delete('/:id', requireAuth(asyncHandler(deleteDocument)))
 
 export default documentRouter

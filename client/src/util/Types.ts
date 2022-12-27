@@ -1,5 +1,7 @@
 import { User } from 'firebase/auth'
 
+import { Element } from '../pages/Editor/EditorTypes'
+
 export interface ModalInterface {
   open: boolean
   onClose: VoidFunction
@@ -11,7 +13,7 @@ export interface Document {
   modified?: Date
   created_at: Date
   owner: User
-  content: Array<Object>
+  content: Element[]
 }
 
 export interface DocumentPreview {

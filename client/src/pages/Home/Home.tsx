@@ -20,7 +20,7 @@ import {
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import React, { FormEvent, useEffect, useRef, useState } from 'react'
+import React, { FormEvent, Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import api from '../../api/api'
@@ -49,8 +49,8 @@ export default function Home() {
   const createButton = useRef(null)
 
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false)
-  const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
-  const [showDeleteDocumentModal, setShowDeleteDocumentModal] = useState<boolean>(false)
+  const [nameModal, setNameModal] = useState<DocumentPreview | null>(null)
+  const [deleteModal, setShowDeleteDocumentModal] = useState<DocumentPreview | null>(null)
 
   const createDocument = (e: CreateDocumentEvent) => {
     e.preventDefault()
@@ -65,14 +65,16 @@ export default function Home() {
 
   return (
     <Box>
-      <ChangeName
-        open={showChangeNameModal}
-        onClose={() => setShowChangeNameModal(false)}
-      />
-      <DeleteDocument
-        open={showDeleteDocumentModal}
-        onClose={() => setShowDeleteDocumentModal(false)}
-      />
+      {nameModal !== null && (
+        <ChangeName open={true} onClose={() => setNameModal(null)} document={nameModal} />
+      )}
+      {deleteModal !== null && (
+        <DeleteDocument
+          document={deleteModal}
+          open={true}
+          onClose={() => setShowDeleteDocumentModal(null)}
+        />
+      )}
       <Button
         startIcon={<AddRounded />}
         size="large"
@@ -106,16 +108,15 @@ export default function Home() {
       ) : documentsQuery.isSuccess ? (
         <List disablePadding>
           {documentsQuery.data.map((doc) => (
-            <>
+            <Fragment key={doc.id}>
               <ListItem
-                key={doc.id}
                 secondaryAction={
                   <>
                     <Tooltip title="Rename">
                       <IconButton
                         edge="end"
                         sx={{ mr: '4px' }}
-                        onClick={() => setShowChangeNameModal(true)}
+                        onClick={() => setNameModal(doc)}
                       >
                         <EditRounded />
                       </IconButton>
@@ -123,7 +124,7 @@ export default function Home() {
                     <Tooltip title="Delete">
                       <IconButton
                         edge="end"
-                        onClick={() => setShowDeleteDocumentModal(true)}
+                        onClick={() => setShowDeleteDocumentModal(doc)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -135,11 +136,11 @@ export default function Home() {
                 <ListItemButton onClick={() => openDocument(doc.id)}>
                   <ListItemText
                     primary={doc.title}
-                    secondary={new Date().toLocaleDateString('sv-SE')}
+                    secondary={doc.created_at.toLocaleDateString('sv-SE')}
                   />
                 </ListItemButton>
               </ListItem>
-            </>
+            </Fragment>
           ))}
         </List>
       ) : (
@@ -162,14 +163,13 @@ export default function Home() {
       ) : sharedQuery.isSuccess ? (
         <List disablePadding>
           {sharedQuery.data.map((doc) => (
-            <>
+            <Fragment key={doc.id}>
               <ListItem
-                key={doc.id}
                 secondaryAction={
                   <Tooltip title="Remove me from document">
                     <IconButton
                       edge="end"
-                      onClick={() => setShowDeleteDocumentModal(true)}
+                      onClick={() => setShowDeleteDocumentModal(doc)}
                     >
                       <PersonOffRounded />
                     </IconButton>
@@ -184,7 +184,7 @@ export default function Home() {
                   />
                 </ListItemButton>
               </ListItem>
-            </>
+            </Fragment>
           ))}
         </List>
       ) : (
