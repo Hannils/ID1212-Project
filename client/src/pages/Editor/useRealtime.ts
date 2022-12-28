@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Descendant } from 'slate'
+import { useEffect, useRef, useState } from 'react'
+import { Descendant, Operation } from 'slate'
 import { io, Socket } from 'socket.io-client'
 
 import { Element } from './EditorTypes'
@@ -7,19 +7,21 @@ import { Element } from './EditorTypes'
 interface RealtimeProps {
   documentId: number | undefined
   value: Descendant[]
-  onChange: (a: Descendant[]) => void
+  onExternalChange: (a: Operation[]) => void
   onConnect?: CallableFunction
 }
 
 export default function useRealtime({
   documentId,
   value,
-  onChange,
+  onExternalChange,
   onConnect,
 }: RealtimeProps) {
   const [loading, setLoading] = useState<boolean>(true)
   const [content, setContent] = useState<Descendant[]>([])
   const [socket, setSocket] = useState<null | Socket>(null)
+  const remote = useRef(false)
+
   useEffect(() => {
     if (documentId === undefined) return
 
@@ -30,12 +32,19 @@ export default function useRealtime({
       console.log(socket.id)
     })
 
-    socket.on('init', (data: string) => {
-      const content: Descendant[] = JSON.parse(data)
+    socket.on('init', (content: Descendant[] | null) => {
       console.log('content', content)
+      if (content === null) return
       onConnect?.(content)
       setContent(content)
       setLoading(false)
+    })
+
+    socket.on('change', (operations: Operation[]) => {
+      console.log('There was an external change: ', operations)
+      remote.current = true
+      onExternalChange(operations)
+      remote.current = false
     })
 
     return () => {
@@ -43,16 +52,19 @@ export default function useRealtime({
     }
   }, [documentId])
 
-  useEffect(() => {
-    if (socket === null || loading) return
+  const sendOperations = (allOperations: Operation[]) => {
+    const operations = allOperations.filter(
+      (operation) => operation.type !== 'set_selection' && !operation.remote
+    )
 
-    console.log('Emitting change event', value)
-
-    socket.emit('change', value)
-  }, [value, socket, loading])
+    console.log("Change", remote.current)
+    if (operations.length === 0 || remote.current === true) return
+    socket?.emit('change', operations)
+  }
 
   return {
     loading,
     content,
+    sendOperations,
   }
 }

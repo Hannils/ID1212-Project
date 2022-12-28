@@ -22,6 +22,7 @@ import {
   Descendant,
   Editor,
   Element as SlateElement,
+  Operation,
   Transforms,
 } from 'slate'
 import { HistoryEditor, withHistory } from 'slate-history'
@@ -47,27 +48,14 @@ const dateTime = Intl.DateTimeFormat('sv-SE', {
 
 interface EditorPageProps {
   document: Document
+  content: Descendant[]
+  editor: BaseEditor & ReactEditor & HistoryEditor
+  onChange: (value: Descendant[], operations: Operation[]) => void
 }
 
-export default function EditorPage({ document }: EditorPageProps) {
+export default function EditorPage({ document, content, editor, onChange }: EditorPageProps) {
   const [showCollaboratorModal, setShowCollaboratorModal] = useState<boolean>(false)
   const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
-  const editor = useMemo(() => withHistory(withReact(createEditor())), [])
-  const [value, setValue] = useState<Descendant[]>([])
-
-  const handleChange = (value: Descendant[]) => {
-    setValue(value)
-  }
-
-  console.log('value', value)
-
-  const realtime = useRealtime({
-    documentId: document.id,
-    value,
-    onChange: () => null,
-    onConnect: (content: Descendant[]) =>
-      content.forEach((element) => editor.insertNode(element)),
-  })
 
   return (
     <Box>
@@ -103,7 +91,7 @@ export default function EditorPage({ document }: EditorPageProps) {
           </Button>
         </Stack>
       </Stack>
-      <Slate editor={editor} value={value} onChange={handleChange}>
+      <Slate editor={editor} value={content} onChange={(value) => onChange(value, editor.operations)}>
         <Container maxWidth="md">
           <Editable
             autoFocus

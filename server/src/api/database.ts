@@ -28,7 +28,7 @@ async function toDocument(data: any): Promise<Document | null> {
     owner,
     created_at,
     modified,
-    content: data.content,
+    content,
   })
 }
 

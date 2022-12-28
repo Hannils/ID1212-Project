@@ -15,16 +15,29 @@ import {
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
+import { Descendant } from 'slate'
 
 import api from '../../api/api'
+import { HistoryEditor, withHistory } from 'slate-history'
+
+import {
+  BaseEditor,
+  createEditor,
+  Element as SlateElement,
+  Operation,
+  Transforms,
+} from 'slate'
 import { Document, ErrorResponse } from '../../util/Types'
 import EditorPage from './EditorPage'
 import useRealtime from './useRealtime'
+import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react'
 
 export default function Editor() {
   const { id } = useParams()
+
+  const [content, setContent] = useState<Descendant[]>([])
 
   const {
     data: document,
@@ -34,8 +47,18 @@ export default function Editor() {
   } = useQuery<Document, AxiosError>(['document', id], () => api.getDocument(id || ''), {
     enabled: id !== undefined,
   })
+  const editor = useMemo(() => withHistory(withReact(createEditor())), [])
 
-  if (isLoading) {
+  const realtime = useRealtime({
+    documentId: Number(id),
+    value: content,
+    onExternalChange: (operations: Operation[]) => operations.forEach(operation => editor.apply({...operation, remote: true} as unknown as Operation)),
+    onConnect: (content: Descendant[]) => setContent(content),
+  })
+
+
+
+  if (isLoading || realtime.loading) {
     return (
       <Box sx={{ minHeight: '80vh', display: 'grid', placeItems: 'center' }}>
         <CircularProgress />
@@ -62,5 +85,15 @@ export default function Editor() {
     )
   }
 
-  return <EditorPage document={document} />
+  return (
+    <EditorPage
+      document={document}
+      content={content}
+      editor={editor}
+      onChange={(value, operations) => {
+        setContent(value)
+        realtime.sendOperations(operations)
+      }}
+    />
+  )
 }
