@@ -52,11 +52,12 @@ export default function Editor() {
   const realtime = useRealtime({
     documentId: Number(id),
     value: content,
-    onExternalChange: (operations: Operation[]) => operations.forEach(operation => editor.apply({...operation, remote: true} as unknown as Operation)),
+    onExternalChange: (operations: Operation[]) =>
+      operations.forEach((operation) =>
+        editor.apply({ ...operation, remote: true } as unknown as Operation),
+      ),
     onConnect: (content: Descendant[]) => setContent(content),
   })
-
-
 
   if (isLoading || realtime.loading) {
     return (

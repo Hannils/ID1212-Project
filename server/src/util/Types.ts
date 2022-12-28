@@ -1,4 +1,5 @@
 import { UserRecord } from 'firebase-admin/auth'
+import { Editor, Descendant } from 'slate'
 
 export interface User {
   id: string
@@ -30,5 +31,12 @@ type Ul = { type: 'ul'; children: Leaf[] }
 type Ol = { type: 'ol'; children: Leaf[] }
 type Li = { type: 'li'; children: Leaf[] }
 
+
+
 export type Element = Paragraph | H1 | Ul | Ol | Li
 export type Text = Leaf
+
+export type Room = {
+  content: Descendant[]
+  editor: Editor
+}

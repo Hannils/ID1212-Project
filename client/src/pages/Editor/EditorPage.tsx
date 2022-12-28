@@ -25,12 +25,14 @@ import {
   Operation,
   Transforms,
 } from 'slate'
+
 import { HistoryEditor, withHistory } from 'slate-history'
 import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react'
 
 import { Document, ErrorResponse } from '../../util/Types'
 import ChangeName from './ChangeName'
 import Collaborator from './Collaborator'
+import { CustomOperation } from './EditorTypes'
 import Element from './Element'
 import Leaf from './Leaf'
 import useRealtime from './useRealtime'
@@ -50,10 +52,15 @@ interface EditorPageProps {
   document: Document
   content: Descendant[]
   editor: BaseEditor & ReactEditor & HistoryEditor
-  onChange: (value: Descendant[], operations: Operation[]) => void
+  onChange: (value: Descendant[], operations: CustomOperation[]) => void
 }
 
-export default function EditorPage({ document, content, editor, onChange }: EditorPageProps) {
+export default function EditorPage({
+  document,
+  content,
+  editor,
+  onChange,
+}: EditorPageProps) {
   const [showCollaboratorModal, setShowCollaboratorModal] = useState<boolean>(false)
   const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
 
@@ -91,7 +98,16 @@ export default function EditorPage({ document, content, editor, onChange }: Edit
           </Button>
         </Stack>
       </Stack>
-      <Slate editor={editor} value={content} onChange={(value) => onChange(value, editor.operations)}>
+      <Slate
+        editor={editor}
+        value={content}
+        onChange={(value) =>
+          onChange(
+            value,
+            editor.operations satisfies CustomOperation[]
+          )
+        }
+      >
         <Container maxWidth="md">
           <Editable
             autoFocus

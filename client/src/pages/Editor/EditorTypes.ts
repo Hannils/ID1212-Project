@@ -1,4 +1,4 @@
-import { BaseEditor } from 'slate'
+import { BaseEditor, Operation, NodeOperation, BaseSetSelectionOperation, TextOperation } from 'slate'
 import { HistoryEditor } from 'slate-history'
 import { ReactEditor } from 'slate-react'
 
@@ -19,4 +19,8 @@ declare module 'slate' {
     Element: Paragraph | H1 | Ul | Ol | Li
     Text: Leaf
   }
+}
+
+export type CustomOperation = Operation & {
+  remote?: boolean
 }

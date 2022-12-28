@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Descendant, Operation } from 'slate'
 import { io, Socket } from 'socket.io-client'
 
-import { Element } from './EditorTypes'
+import { Element, CustomOperation } from './EditorTypes'
 
 interface RealtimeProps {
   documentId: number | undefined
@@ -20,7 +20,6 @@ export default function useRealtime({
   const [loading, setLoading] = useState<boolean>(true)
   const [content, setContent] = useState<Descendant[]>([])
   const [socket, setSocket] = useState<null | Socket>(null)
-  const remote = useRef(false)
 
   useEffect(() => {
     if (documentId === undefined) return
@@ -42,9 +41,10 @@ export default function useRealtime({
 
     socket.on('change', (operations: Operation[]) => {
       console.log('There was an external change: ', operations)
-      remote.current = true
-      onExternalChange(operations)
-      remote.current = false
+      const customOperations = operations.map(
+        (operation) => ({ ...operation, remote: true } satisfies CustomOperation),
+      )
+      onExternalChange(customOperations)
     })
 
     return () => {
@@ -52,13 +52,12 @@ export default function useRealtime({
     }
   }, [documentId])
 
-  const sendOperations = (allOperations: Operation[]) => {
+  const sendOperations = (allOperations: Array<CustomOperation>) => {
     const operations = allOperations.filter(
-      (operation) => operation.type !== 'set_selection' && !operation.remote
+      (operation) => operation.type !== 'set_selection' && !operation.remote,
     )
+    if (operations.length === 0) return
 
-    console.log("Change", remote.current)
-    if (operations.length === 0 || remote.current === true) return
     socket?.emit('change', operations)
   }
 
