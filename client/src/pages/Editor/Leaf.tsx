@@ -10,6 +10,10 @@ function Leaf({ attributes, children, leaf }: RenderLeafProps) {
     children = <em>{children}</em>
   }
 
+  if (leaf.collaborator) {
+    children = <span style={{ backgroundColor: 'red' }}>{children}</span>
+  }
+
   return <span {...attributes}>{children}</span>
 }
 

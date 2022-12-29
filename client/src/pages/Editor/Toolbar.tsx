@@ -80,7 +80,7 @@ export default function Toolbar() {
         <ToggleButtonGroup
           aria-label="text formatting"
           value={Object.keys(marks)}
-          onChange={(_, value) => updateMarks(value as Array<keyof Omit<Text, 'text'>>)}
+          onChange={(_, value) => updateMarks(value as Array<Marks>)}
         >
           <ToggleButton aria-label="bold" value="bold">
             <FormatBoldIcon />

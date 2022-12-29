@@ -8,7 +8,7 @@ import {
 import { HistoryEditor } from 'slate-history'
 import { ReactEditor } from 'slate-react'
 
-type Leaf = { text: string; bold?: true; italic?: true }
+type Leaf = { text: string; bold?: true; italic?: true; collaborator?: string }
 
 type Paragraph = { type: 'paragraph'; children: Leaf[] }
 type H1 = { type: 'h1'; children: Leaf[] }
@@ -21,7 +21,7 @@ type Li = { type: 'li'; children: Leaf[] }
 export type Element = Paragraph | H1 | H2 | H3 | Ul | Ol | Li
 export type Text = Leaf
 
-export type Marks = keyof Omit<Text, 'text'>
+export type Marks = keyof Omit<Text, 'text' | 'collaborator'>
 
 declare module 'slate' {
   interface CustomTypes {
@@ -31,6 +31,25 @@ declare module 'slate' {
   }
 }
 
-export type CustomOperation = Operation & {
+// Stolen from slate react type definitions
+export type ExternalCursorOperation = {
+  type: 'set_external_selection'
+  user: string
+} & (
+  | {
+      properties: null
+      newProperties: Range
+    }
+  | {
+      properties: Partial<Range>
+      newProperties: Partial<Range>
+    }
+  | {
+      properties: Range
+      newProperties: null
+    }
+)
+
+export type CustomOperation = (Operation | ExternalCursorOperation) & {
   remote?: boolean
 }

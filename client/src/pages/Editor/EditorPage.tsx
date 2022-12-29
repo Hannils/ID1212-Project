@@ -31,6 +31,9 @@ import {
   Element as SlateElement,
   Operation,
   Transforms,
+  Path,
+  NodeEntry,
+  BaseRange,
 } from 'slate'
 import { HistoryEditor, withHistory } from 'slate-history'
 import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react'
@@ -43,7 +46,6 @@ import { CustomOperation } from './EditorTypes'
 import Element from './Element'
 import Leaf from './Leaf'
 import Toolbar from './Toolbar'
-import useRealtime from './useRealtime'
 
 const EditorPaper = styled(Paper)({
   marginBlock: '16px',
@@ -61,6 +63,7 @@ interface EditorPageProps {
   content: Descendant[]
   editor: BaseEditor & ReactEditor & HistoryEditor
   onChange: (value: Descendant[], operations: CustomOperation[]) => void
+  decorator?: (n: NodeEntry) => BaseRange[]
   people: User[]
 }
 
@@ -69,6 +72,7 @@ export default function EditorPage({
   content,
   editor,
   onChange,
+  decorator,
   people,
 }: EditorPageProps) {
   const [showCollaboratorModal, setShowCollaboratorModal] = useState<boolean>(false)
@@ -124,6 +128,7 @@ export default function EditorPage({
         <Toolbar />
         <Container maxWidth="md">
           <Editable
+            decorate={decorator}
             spellCheck
             as={EditorPaper}
             placeholder="Write something interesting..."

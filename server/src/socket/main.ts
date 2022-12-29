@@ -7,7 +7,7 @@ import { Server } from 'socket.io'
 
 import { selectDocument, updateDocumentContent } from '../api/database'
 import { useAuth } from '../util/Misc'
-import { Element } from '../util/Types'
+import { CustomOperation, Element } from '../util/Types'
 
 const editors = new Map<number, Editor>()
 const activeUsers = new Map<number, UserRecord[]>()
@@ -104,15 +104,18 @@ export default function initSocket() {
         })
     })
 
-    socket.on('change', (operations: Operation[]) => {
+    socket.on('change', (operations: CustomOperation[]) => {
       console.log('Change', operations)
       const room = editors.get(documentId)
       if (room === undefined) {
         // Handle Error
         return
       }
-      operations.forEach((operation) => room.apply(operation))
-      room.children.forEach((child, index) => console.log(index, child))
+
+      operations
+        .filter(({ type }) => type !== 'set_external_selection')
+        .forEach((operation) => room.apply(operation as Operation))
+
       socket.broadcast.to(roomName).emit('change', operations)
     })
   })

@@ -1,5 +1,5 @@
 import { UserRecord } from 'firebase-admin/auth'
-import { Descendant, Editor } from 'slate'
+import { Descendant, Editor, Operation } from 'slate'
 
 export interface User {
   id: string
@@ -33,3 +33,26 @@ type Li = { type: 'li'; children: Leaf[] }
 
 export type Element = Paragraph | H1 | Ul | Ol | Li
 export type Text = Leaf
+
+// Stolen from slate react type definitions
+type ExternalCursorOperation = {
+  type: 'set_external_selection'
+  user: string
+} & (
+  | {
+      properties: null
+      newProperties: Range
+    }
+  | {
+      properties: Partial<Range>
+      newProperties: Partial<Range>
+    }
+  | {
+      properties: Range
+      newProperties: null
+    }
+)
+
+export type CustomOperation = (Operation | ExternalCursorOperation) & {
+  remote?: boolean
+}
