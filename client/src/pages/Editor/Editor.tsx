@@ -33,12 +33,14 @@ import { Document, ErrorResponse } from '../../util/Types'
 import EditorPage from './EditorPage'
 import useRealtime from './useRealtime'
 import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react'
+import { User } from 'firebase/auth'
+import useUser from '../../util/auth'
 
 export default function Editor() {
   const { id } = useParams()
 
   const [content, setContent] = useState<Descendant[]>([])
-
+  const [people, setPeople] = useState<User[]>([])
   const {
     data: document,
     isLoading,
@@ -48,7 +50,6 @@ export default function Editor() {
     enabled: id !== undefined,
   })
   const editor = useMemo(() => withHistory(withReact(createEditor())), [])
-
   const realtime = useRealtime({
     documentId: Number(id),
     value: content,
@@ -57,6 +58,15 @@ export default function Editor() {
         editor.apply({ ...operation, remote: true } as unknown as Operation),
       ),
     onConnect: (content: Descendant[]) => setContent(content),
+    onJoin: (user: User) => {
+      setPeople(people => [...people, user])
+    },
+    onSync: (users: User[]) => {
+      setPeople(users)
+    },
+    onLeave: (user: User) => {
+      setPeople(people.filter((person) => person.uid !== user.uid))
+    }
   })
 
   if (isLoading || realtime.loading) {
@@ -95,6 +105,7 @@ export default function Editor() {
         setContent(value)
         realtime.sendOperations(operations)
       }}
+      people={people}
     />
   )
 }

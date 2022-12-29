@@ -2,12 +2,17 @@ import { EditRounded, PeopleRounded } from '@mui/icons-material'
 import {
   Alert,
   AlertTitle,
+  Avatar,
+  AvatarGroup,
   Box,
   Button,
   CircularProgress,
   Container,
   FormGroup,
   IconButton,
+  List,
+  ListItemAvatar,
+  ListItemIcon,
   Paper,
   Stack,
   styled,
@@ -15,6 +20,8 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import zIndex from '@mui/material/styles/zIndex'
+import { User, UserProfile } from 'firebase/auth'
 import React, { useMemo, useState } from 'react'
 import {
   BaseEditor,
@@ -28,6 +35,7 @@ import {
 
 import { HistoryEditor, withHistory } from 'slate-history'
 import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react'
+import UserAvatar from '../../components/UserAvatar'
 
 import { Document, ErrorResponse } from '../../util/Types'
 import ChangeName from './ChangeName'
@@ -53,6 +61,7 @@ interface EditorPageProps {
   content: Descendant[]
   editor: BaseEditor & ReactEditor & HistoryEditor
   onChange: (value: Descendant[], operations: CustomOperation[]) => void
+  people: User[]
 }
 
 export default function EditorPage({
@@ -60,10 +69,11 @@ export default function EditorPage({
   content,
   editor,
   onChange,
+  people,
 }: EditorPageProps) {
   const [showCollaboratorModal, setShowCollaboratorModal] = useState<boolean>(false)
   const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
-
+  console.log('People: ', people)
   return (
     <Box>
       <Collaborator
@@ -88,6 +98,11 @@ export default function EditorPage({
           <Typography>{dateTime.format(document.modified)}</Typography>
         </Typography>
         <Stack direction="row" spacing={2}>
+          <AvatarGroup max={3} sx={{mb: '0px'}}>
+            {people.map((person, currIndex) => (
+                  <UserAvatar key={person.uid} user={person} />
+            ))}
+          </AvatarGroup>
           <Button
             size="small"
             startIcon={<PeopleRounded />}
@@ -102,10 +117,7 @@ export default function EditorPage({
         editor={editor}
         value={content}
         onChange={(value) =>
-          onChange(
-            value,
-            editor.operations satisfies CustomOperation[]
-          )
+          onChange(value, editor.operations satisfies CustomOperation[])
         }
       >
         <Container maxWidth="md">

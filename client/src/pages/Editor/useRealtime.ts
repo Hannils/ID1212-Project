@@ -10,6 +10,9 @@ interface RealtimeProps {
   value: Descendant[]
   onExternalChange: (a: Operation[]) => void
   onConnect?: CallableFunction
+  onJoin: CallableFunction
+  onSync: CallableFunction
+  onLeave: CallableFunction
 }
 
 export default function useRealtime({
@@ -17,6 +20,9 @@ export default function useRealtime({
   value,
   onExternalChange,
   onConnect,
+  onJoin,
+  onSync,
+  onLeave
 }: RealtimeProps) {
   const [user] = useUser()
   const [loading, setLoading] = useState<boolean>(true)
@@ -37,10 +43,17 @@ export default function useRealtime({
 
     socket.on('join', (user) => {
       console.log('User has joined', user)
+      onJoin?.(user)
     })
 
     socket.on('sync-users', (users) => {
       console.log('Sync users', users)
+      onSync(users)
+    })
+
+    socket.on('left', (user) => {
+      console.log('Someone left', user)
+      onLeave(user)
     })
 
     socket.on('init', (content: Descendant[] | null) => {

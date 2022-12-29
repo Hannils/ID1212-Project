@@ -7,6 +7,7 @@ import { useAuth } from '../util/Misc'
 import { Element } from '../util/Types'
 import { UserRecord } from 'firebase-admin/auth'
 import { auth } from 'firebase-admin'
+import { Socket } from 'dgram'
 
 const editors = new Map<number, Editor>()
 const activeUsers = new Map<number, UserRecord[]>()
@@ -53,9 +54,6 @@ export default function initSocket() {
       io.to(id).emit('init', room.children)
     }
   })
-  io.of('/').adapter.on('leave-room', (room, id) => {
-    console.log(`socket ${id} has left room ${room}`)
-  })
 
   io.of('/').adapter.on('delete-room', (roomName) => {
     if (roomName.startsWith('document-')) {
@@ -73,9 +71,6 @@ export default function initSocket() {
     const userId = socket.handshake.query.userId
 
     if (userId === undefined || Array.isArray(userId) || isNaN(documentId)) return
-
-    console.log('new connection:  ', documentId)
-    console.log('current rooms: ', socket.rooms)
     const roomName = 'document-' + documentId
     socket.join(roomName)
     auth()
@@ -86,25 +81,41 @@ export default function initSocket() {
           console.error('Error error123321')
           return
         }
+        console.log('User connected and emitting sync-users: ', users)
         socket.emit('sync-users', users)
         socket.broadcast.to(roomName).emit('join', user)
         users.push(user)
       })
 
+    socket.on('disconnecting', () => {
+      console.log('Someone disconnected')
+      auth()
+        .getUser(userId)
+        .then((user) => {
+          const users = activeUsers.get(documentId)
+          if (users === undefined) {
+            console.error('Error error123321')
+            return
+          }
+          activeUsers.set(
+            documentId,
+            users.filter((person) => person.uid !== userId),
+          )
+          console.log(activeUsers.get(documentId))
+          //socket.emit('sync-users', activeUsers.get(documentId))
+          socket.broadcast.to(roomName).emit('left', user)
+        })
+    })
+
     socket.on('change', (operations: Operation[]) => {
       console.log('Change', operations)
-
       const room = editors.get(documentId)
-
       if (room === undefined) {
         // Handle Error
         return
       }
-
       operations.forEach((operation) => room.apply(operation))
-
       room.children.forEach((child, index) => console.log(index, child))
-
       socket.broadcast.to(roomName).emit('change', operations)
     })
   })

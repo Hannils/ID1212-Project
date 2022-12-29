@@ -47,7 +47,6 @@ export default function Layout(props: LayoutProps) {
     }
   }
 
-  console.log('user', user)
   return (
     <Box pt={12}>
       <AppBar sx={{ zIndex: 100 }}>
