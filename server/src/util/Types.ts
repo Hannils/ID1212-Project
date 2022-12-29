@@ -35,8 +35,3 @@ type Li = { type: 'li'; children: Leaf[] }
 
 export type Element = Paragraph | H1 | Ul | Ol | Li
 export type Text = Leaf
-
-export type Room = {
-  content: Descendant[]
-  editor: Editor
-}

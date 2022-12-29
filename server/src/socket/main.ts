@@ -1,12 +1,15 @@
 import dotenv from 'dotenv'
-import { createEditor, Operation } from 'slate'
+import { createEditor, Editor, Operation } from 'slate'
 import { Server } from 'socket.io'
 
-import { selectDocument } from '../api/database'
+import { selectDocument, updateDocumentContent } from '../api/database'
 import { useAuth } from '../util/Misc'
-import { Element, Room } from '../util/Types'
+import { Element } from '../util/Types'
+import { UserRecord } from 'firebase-admin/auth'
+import { auth } from 'firebase-admin'
 
-const rooms = new Map<number, Room>()
+const editors = new Map<number, Editor>()
+const activeUsers = new Map<number, UserRecord[]>()
 
 export default function initSocket() {
   const io = new Server({
@@ -19,6 +22,7 @@ export default function initSocket() {
     if (room.startsWith('document-')) {
       console.log(`room ${room} was created`)
       const documentId = Number(room.replace('document-', ''))
+      activeUsers.set(documentId, [])
       const document = await selectDocument(documentId)
       if (document === null) {
         // Handle error
@@ -31,10 +35,7 @@ export default function initSocket() {
 
       console.log(editor.children)
 
-      rooms.set(documentId, {
-        content: document.content,
-        editor,
-      })
+      editors.set(documentId, editor)
       io.to(room).emit('init', document.content)
     }
   })
@@ -44,12 +45,12 @@ export default function initSocket() {
       console.log(`socket ${id} has joined room ${roomName}`)
       const documentId = Number(roomName.replace('document-', ''))
 
-      const room = rooms.get(documentId)
+      const room = editors.get(documentId)
       if (room === undefined) {
         // Handle error
         return
       }
-      io.to(roomName).emit('init', room.content)
+      io.to(id).emit('init', room.children)
     }
   })
   io.of('/').adapter.on('leave-room', (room, id) => {
@@ -60,32 +61,51 @@ export default function initSocket() {
     if (roomName.startsWith('document-')) {
       console.log(`socket has deleted room ${roomName}`)
       const documentId = Number(roomName.replace('document-', ''))
-      rooms.delete(documentId)
+      updateDocumentContent(
+        documentId,
+        JSON.stringify(editors.get(documentId)?.children),
+      ).then(() => editors.delete(documentId))
     }
   })
 
   io.on('connection', (socket) => {
     const documentId = Number(socket.handshake.query.documentId)
+    const userId = socket.handshake.query.userId
+
+    if (userId === undefined || Array.isArray(userId) || isNaN(documentId)) return
+
     console.log('new connection:  ', documentId)
     console.log('current rooms: ', socket.rooms)
     const roomName = 'document-' + documentId
     socket.join(roomName)
+    auth()
+      .getUser(userId)
+      .then((user) => {
+        const users = activeUsers.get(documentId)
+        if (users === undefined) {
+          console.error('Error error123321')
+          return
+        }
+        socket.emit('sync-users', users)
+        socket.broadcast.to(roomName).emit('join', user)
+        users.push(user)
+      })
 
-    socket.on('change', (operation: Operation) => {
-      console.log('Change', operation)
+    socket.on('change', (operations: Operation[]) => {
+      console.log('Change', operations)
 
-      const room = rooms.get(documentId)
+      const room = editors.get(documentId)
 
-      if(room === undefined) {
+      if (room === undefined) {
         // Handle Error
         return
       }
-      room.editor.apply(operation)
-      console.log(room.editor.children)
-      room.content = room.editor.children
- //
 
-      socket.broadcast.to(roomName).emit('change', operation)
+      operations.forEach((operation) => room.apply(operation))
+
+      room.children.forEach((child, index) => console.log(index, child))
+
+      socket.broadcast.to(roomName).emit('change', operations)
     })
   })
 

@@ -15,7 +15,7 @@ import {
   updateDocument,
 } from '../api/database'
 import { requireAuth } from '../util/Misc'
-import { Document, DocumentPreview } from '../util/Types'
+import { Document, Element } from '../util/Types'
 import collaboratorRouter from './collaborator'
 
 const getDocument: express.RequestHandler = async (req, res) => {
@@ -47,7 +47,12 @@ const createDocument: express.RequestHandler = async (req, res) => {
     title,
     created_at: new Date(),
     owner: res.locals.currentUser,
-    content: '[]',
+    content: JSON.stringify([
+      {
+        type: 'paragraph',
+        children: [{ text: '' }],
+      },
+    ] satisfies Element[]),
   }
 
   const documentId = await insertDocument(document)

@@ -147,6 +147,14 @@ export async function updateDocument(id: string, title: string) {
   ])
 }
 
+export async function updateDocumentContent(id: number, content: string) {
+  await queryDatabase('UPDATE document SET content = $1, modified = $2 WHERE id = $3', [
+    content,
+    new Date(),
+    id,
+  ])
+}
+
 export async function dropDocument(owner: string, id: string) {
   await queryDatabase('DELETE FROM collaborator WHERE document_id = $1', [id])
   const res = await queryDatabase('DELETE FROM document WHERE owner = $1 AND id = $2', [

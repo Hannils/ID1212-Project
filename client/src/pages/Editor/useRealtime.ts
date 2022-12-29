@@ -3,6 +3,7 @@ import { Descendant, Operation } from 'slate'
 import { io, Socket } from 'socket.io-client'
 
 import { Element, CustomOperation } from './EditorTypes'
+import useUser from '../../util/auth'
 
 interface RealtimeProps {
   documentId: number | undefined
@@ -17,6 +18,7 @@ export default function useRealtime({
   onExternalChange,
   onConnect,
 }: RealtimeProps) {
+  const [user] = useUser()
   const [loading, setLoading] = useState<boolean>(true)
   const [content, setContent] = useState<Descendant[]>([])
   const [socket, setSocket] = useState<null | Socket>(null)
@@ -24,11 +26,21 @@ export default function useRealtime({
   useEffect(() => {
     if (documentId === undefined) return
 
-    const socket = io('http://localhost:7777', { query: { documentId } })
+    const socket = io('http://localhost:7777', {
+      query: { documentId, userId: user?.uid },
+    })
     setSocket(socket)
 
     socket.on('connect', () => {
       console.log(socket.id)
+    })
+
+    socket.on('join', (user) => {
+      console.log('User has joined', user)
+    })
+
+    socket.on('sync-users', (users) => {
+      console.log('Sync users', users)
     })
 
     socket.on('init', (content: Descendant[] | null) => {
