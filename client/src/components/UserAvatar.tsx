@@ -1,13 +1,13 @@
 import { Avatar, AvatarProps, Skeleton } from '@mui/material'
 import { User } from 'firebase/auth'
-import React, { useMemo } from 'react'
+import React, { forwardRef, useMemo } from 'react'
 
 interface UserAvatarProps extends AvatarProps {
   user: User
   isLoading?: boolean
 }
 
-export default function UserAvatar({ user, isLoading, ...props }: UserAvatarProps) {
+const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(({ user, isLoading, ...props }, ref) => {
   const initials = useMemo<string>(
     () =>
       user === null || user.displayName === null ? '' : getInitials(user.displayName),
@@ -23,11 +23,11 @@ export default function UserAvatar({ user, isLoading, ...props }: UserAvatarProp
   }
 
   return (
-    <Avatar src={user.photoURL ? user.photoURL : undefined} {...props}>
+    <Avatar ref={ref} src={user.photoURL ? user.photoURL : undefined} {...props}>
       {user.photoURL ? undefined : initials}
     </Avatar>
   )
-}
+})
 
 function getInitials(name: string): string {
   const rgx = new RegExp(/(\p{L}{1})\p{L}+/, 'gu')
@@ -35,3 +35,5 @@ function getInitials(name: string): string {
 
   return ((initials.shift()?.[1] || '') + (initials.pop()?.[1] || '')).toUpperCase()
 }
+
+export default UserAvatar

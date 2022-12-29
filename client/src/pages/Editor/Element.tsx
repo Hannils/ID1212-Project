@@ -27,11 +27,25 @@ export default function Element({ element, children }: RenderElementProps) {
           {children}
         </Typography>
       )
+    case 'h2':
+      return (
+        <Typography variant="h2" gutterBottom>
+          {children}
+        </Typography>
+      )
+    case 'h3':
+      return (
+        <Typography variant="h3" gutterBottom>
+          {children}
+        </Typography>
+      )
     case 'ul':
       return <ul>{children}</ul>
     case 'ol':
       return <ol>{children}</ol>
     case 'li':
       return <li>{children}</li>
+    default:
+      return <Paragraph>{children}</Paragraph>
   }
 }

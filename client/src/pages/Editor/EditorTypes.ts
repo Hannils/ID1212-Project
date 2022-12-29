@@ -6,17 +6,19 @@ type Leaf = { text: string; bold?: true; italic?: true }
 
 type Paragraph = { type: 'paragraph'; children: Leaf[] }
 type H1 = { type: 'h1'; children: Leaf[] }
+type H2 = { type: 'h2'; children: Leaf[] }
+type H3 = { type: 'h3'; children: Leaf[] }
 type Ul = { type: 'ul'; children: Leaf[] }
 type Ol = { type: 'ol'; children: Leaf[] }
 type Li = { type: 'li'; children: Leaf[] }
 
-export type Element = Paragraph | H1 | Ul | Ol | Li
+export type Element = Paragraph | H1 | H2 | H3 | Ul | Ol | Li
 export type Text = Leaf
 
 declare module 'slate' {
   interface CustomTypes {
     Editor: BaseEditor & ReactEditor & HistoryEditor
-    Element: Paragraph | H1 | Ul | Ol | Li
+    Element: Element
     Text: Leaf
   }
 }

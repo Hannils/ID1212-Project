@@ -43,6 +43,7 @@ import Collaborator from './Collaborator'
 import { CustomOperation } from './EditorTypes'
 import Element from './Element'
 import Leaf from './Leaf'
+import Toolbar from './Toolbar'
 import useRealtime from './useRealtime'
 
 const EditorPaper = styled(Paper)({
@@ -98,9 +99,11 @@ export default function EditorPage({
           <Typography>{dateTime.format(document.modified)}</Typography>
         </Typography>
         <Stack direction="row" spacing={2}>
-          <AvatarGroup max={3} sx={{mb: '0px'}}>
-            {people.map((person, currIndex) => (
-                  <UserAvatar key={person.uid} user={person} />
+          <AvatarGroup max={2}>
+            {people.map((person) => (
+              <Tooltip key={person.uid} title={person.displayName}>
+                <UserAvatar key={person.uid} user={person} />
+              </Tooltip>
             ))}
           </AvatarGroup>
           <Button
@@ -120,6 +123,7 @@ export default function EditorPage({
           onChange(value, editor.operations satisfies CustomOperation[])
         }
       >
+        <Toolbar />
         <Container maxWidth="md">
           <Editable
             autoFocus

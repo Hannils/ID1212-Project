@@ -81,7 +81,6 @@ export default function initSocket() {
           console.error('Error error123321')
           return
         }
-        console.log('User connected and emitting sync-users: ', users)
         socket.emit('sync-users', users)
         socket.broadcast.to(roomName).emit('join', user)
         users.push(user)
@@ -101,8 +100,6 @@ export default function initSocket() {
             documentId,
             users.filter((person) => person.uid !== userId),
           )
-          console.log(activeUsers.get(documentId))
-          //socket.emit('sync-users', activeUsers.get(documentId))
           socket.broadcast.to(roomName).emit('left', user)
         })
     })
