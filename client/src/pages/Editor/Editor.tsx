@@ -15,13 +15,10 @@ import {
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import React, { useEffect, useState, useMemo } from 'react'
+import { User } from 'firebase/auth'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Descendant } from 'slate'
-
-import api from '../../api/api'
-import { HistoryEditor, withHistory } from 'slate-history'
-
 import {
   BaseEditor,
   createEditor,
@@ -29,12 +26,14 @@ import {
   Operation,
   Transforms,
 } from 'slate'
+import { HistoryEditor, withHistory } from 'slate-history'
+import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react'
+
+import api from '../../api/api'
+import useUser from '../../util/auth'
 import { Document, ErrorResponse } from '../../util/Types'
 import EditorPage from './EditorPage'
 import useRealtime from './useRealtime'
-import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react'
-import { User } from 'firebase/auth'
-import useUser from '../../util/auth'
 
 export default function Editor() {
   const { id } = useParams()

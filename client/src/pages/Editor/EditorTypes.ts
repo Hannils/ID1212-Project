@@ -1,4 +1,10 @@
-import { BaseEditor, Operation, NodeOperation, BaseSetSelectionOperation, TextOperation } from 'slate'
+import {
+  BaseEditor,
+  BaseSetSelectionOperation,
+  NodeOperation,
+  Operation,
+  TextOperation,
+} from 'slate'
 import { HistoryEditor } from 'slate-history'
 import { ReactEditor } from 'slate-react'
 
@@ -14,6 +20,8 @@ type Li = { type: 'li'; children: Leaf[] }
 
 export type Element = Paragraph | H1 | H2 | H3 | Ul | Ol | Li
 export type Text = Leaf
+
+export type Marks = keyof Omit<Text, 'text'>
 
 declare module 'slate' {
   interface CustomTypes {

@@ -32,11 +32,10 @@ import {
   Operation,
   Transforms,
 } from 'slate'
-
 import { HistoryEditor, withHistory } from 'slate-history'
 import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react'
-import UserAvatar from '../../components/UserAvatar'
 
+import UserAvatar from '../../components/UserAvatar'
 import { Document, ErrorResponse } from '../../util/Types'
 import ChangeName from './ChangeName'
 import Collaborator from './Collaborator'
@@ -74,7 +73,6 @@ export default function EditorPage({
 }: EditorPageProps) {
   const [showCollaboratorModal, setShowCollaboratorModal] = useState<boolean>(false)
   const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
-  console.log('People: ', people)
   return (
     <Box>
       <Collaborator
@@ -126,7 +124,6 @@ export default function EditorPage({
         <Toolbar />
         <Container maxWidth="md">
           <Editable
-            autoFocus
             spellCheck
             as={EditorPaper}
             placeholder="Write something interesting..."

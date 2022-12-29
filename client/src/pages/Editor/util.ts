@@ -1,10 +1,11 @@
 import {
-  Editor,
-  Transforms,
-  Element as SlateElement,
-  EditorMarks,
   BaseElement,
+  Editor,
+  EditorMarks,
+  Element as SlateElement,
+  Transforms,
 } from 'slate'
+
 import { Element, Text } from './EditorTypes'
 
 export function getActiveBlocks(editor: Editor): Array<Element['type']> {
@@ -20,7 +21,7 @@ export function getActiveBlocks(editor: Editor): Array<Element['type']> {
   return blocks.map((block) => block.type)
 }
 
-const isBlockActive = (editor: Editor, format: string) => {
+export const isBlockActive = (editor: Editor, format: Element['type']) => {
   const { selection } = editor
   if (!selection) return false
 
@@ -34,25 +35,6 @@ const isBlockActive = (editor: Editor, format: string) => {
   return !!match
 }
 
-export const toggleBlock = (editor: Editor, type: Element['type']) => {
-  console.log(type)
-  const isActive = isBlockActive(editor, type)
-
-  Transforms.unwrapNodes(editor, {
-    match: (n) => !Editor.isEditor(n) && SlateElement.isElement(n),
-    split: true,
-  })
-
-  Transforms.setNodes(editor, {
-    type: isActive ? 'paragraph' : type,
-  })
-
-  if (!isActive) {
-    const block = { type: type, children: [] }
-    Transforms.wrapNodes(editor, block)
-  }
-}
-
 export const isCurrentNodeEmpty = (editor: Editor) => {
   if (editor.selection === null) return false
   const nodeEntry = Editor.node(editor, editor.selection)
@@ -61,18 +43,12 @@ export const isCurrentNodeEmpty = (editor: Editor) => {
   return node.text === ''
 }
 
-export const toggleMark = (editor: Editor, format: keyof EditorMarks) => {
-  const isActive = isMarkActive(editor, format)
-
-  if (isActive) {
-    Editor.removeMark(editor, format)
-  } else {
-    Editor.addMark(editor, format, true)
-  }
-}
+export const toggleMark = (editor: Editor, format: keyof EditorMarks) =>
+  isMarkActive(editor, format)
+    ? Editor.removeMark(editor, format)
+    : Editor.addMark(editor, format, true)
 
 const isMarkActive = (editor: Editor, format: keyof EditorMarks) => {
   const marks = Editor.marks(editor)
-  if (marks === null) return false
-  return marks ? marks[format] === true : false
+  return marks !== null && marks[format]
 }

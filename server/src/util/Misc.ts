@@ -12,14 +12,16 @@ export function isValidHttpUrl(url: string) {
 }
 export const useAuth: RequestHandler = async (req, res, next) => {
   const auth = req.headers.authorization
+  res.locals.currentUser = null
+
   if (typeof auth === 'string') {
     try {
       const user = await admin.auth().verifyIdToken(auth)
       res.locals.currentUser = user.uid
-      return next()
-    } catch (_) {}
+    } catch (_) {
+      console.error('Invalid token')
+    }
   }
-  res.locals.currentUser = null
   next()
 }
 

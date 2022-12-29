@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Descendant, Operation } from 'slate'
 import { io, Socket } from 'socket.io-client'
 
-import { Element, CustomOperation } from './EditorTypes'
 import useUser from '../../util/auth'
+import { CustomOperation, Element } from './EditorTypes'
 
 interface RealtimeProps {
   documentId: number | undefined
@@ -22,7 +22,7 @@ export default function useRealtime({
   onConnect,
   onJoin,
   onSync,
-  onLeave
+  onLeave,
 }: RealtimeProps) {
   const [user] = useUser()
   const [loading, setLoading] = useState<boolean>(true)

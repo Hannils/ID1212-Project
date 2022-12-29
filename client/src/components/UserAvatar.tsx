@@ -7,7 +7,10 @@ interface UserAvatarProps extends AvatarProps {
   isLoading?: boolean
 }
 
-const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(({ user, isLoading, ...props }, ref) => {
+export default forwardRef<HTMLDivElement, UserAvatarProps>(function UserAvatar(
+  { user, isLoading, ...props },
+  ref,
+) {
   const initials = useMemo<string>(
     () =>
       user === null || user.displayName === null ? '' : getInitials(user.displayName),
@@ -35,5 +38,3 @@ function getInitials(name: string): string {
 
   return ((initials.shift()?.[1] || '') + (initials.pop()?.[1] || '')).toUpperCase()
 }
-
-export default UserAvatar

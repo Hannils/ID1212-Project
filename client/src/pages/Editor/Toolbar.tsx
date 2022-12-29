@@ -11,16 +11,23 @@ import Stack from '@mui/material/Stack'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import React, { useCallback, useEffect, useState } from 'react'
-import { Editor, EditorMarks, Text, Element as SlateElement } from 'slate'
-import { Element } from './EditorTypes'
+import {
+  Editor,
+  EditorMarks,
+  Element as SlateElement,
+  Node,
+  Text,
+  Transforms,
+} from 'slate'
 import { useSlate } from 'slate-react'
 
-import { getActiveBlocks, isCurrentNodeEmpty, toggleBlock, toggleMark } from './util'
+import { Element, Marks } from './EditorTypes'
+import { getActiveBlocks, isBlockActive, toggleMark } from './util'
 
 const HEADING_LABELS = {
-  h1: 'Header 1',
-  h2: 'Header 2',
-  h3: 'Header 3',
+  h1: 'Heading 1',
+  h2: 'Heading 2',
+  h3: 'Heading 3',
 }
 
 export default function Toolbar() {
@@ -39,13 +46,10 @@ export default function Toolbar() {
     setActiveBlocks(getActiveBlocks(editor))
   }, [selection, editor])
 
-  const updateMarks = (
-    e: React.MouseEvent<HTMLElement, MouseEvent>,
-    newMarks: Array<keyof Omit<Text, 'text'>>,
-  ) => {
-    const currentMarks = Object.keys(marks) as Array<keyof Omit<Text, 'text'>>
+  const updateMarks = (newMarks: Marks[]) => {
+    const currentMarks = Object.keys(marks) as Marks[]
 
-    let [mark] = currentMarks
+    const [mark] = currentMarks
       .filter((x) => !newMarks.includes(x))
       .concat(newMarks.filter((x) => !currentMarks.includes(x)))
     toggleMark(editor, mark)
@@ -54,16 +58,16 @@ export default function Toolbar() {
     setMarks(newMarksObj)
   }
 
-  const updateBlock = useCallback(
-    (newBlock: Element['type']) => {
-      toggleBlock(editor, newBlock)
-      setActiveBlocks([])
-    },
-    [editor],
-  )
+  const updateBlock = (newBlock: Element['type']) => {
+    Transforms.setNodes<SlateElement>(editor, {
+      type: isBlockActive(editor, newBlock) ? 'paragraph' : newBlock,
+    })
+
+    setActiveBlocks(getActiveBlocks(editor))
+  }
 
   return (
-    <AppBar color="inherit" elevation={0} position="sticky" sx={{ top: '80px' }}>
+    <AppBar color="inherit" elevation={0} position="sticky" sx={{ top: '66px' }}>
       <Stack
         direction="row"
         justifyContent="center"
@@ -75,19 +79,14 @@ export default function Toolbar() {
       >
         <ToggleButtonGroup
           aria-label="text formatting"
-          value={marks}
-          onChange={(e, value) =>
-            updateMarks(e, value as Array<keyof Omit<Text, 'text'>>)
-          }
+          value={Object.keys(marks)}
+          onChange={(_, value) => updateMarks(value as Array<keyof Omit<Text, 'text'>>)}
         >
           <ToggleButton aria-label="bold" value="bold">
             <FormatBoldIcon />
           </ToggleButton>
           <ToggleButton aria-label="italic" value="italic">
             <FormatItalicIcon />
-          </ToggleButton>
-          <ToggleButton aria-label="underlined" value="underline">
-            <FormatUnderlinedIcon />
           </ToggleButton>
         </ToggleButtonGroup>
 
@@ -99,7 +98,7 @@ export default function Toolbar() {
           )}
           onChange={(_, newValue) => updateBlock(newValue as Element['type'])}
         >
-          <ToggleButton aria-label="bold" value="paragraph">
+          <ToggleButton aria-label="Text" value="paragraph">
             Text
           </ToggleButton>
           {Object.entries(HEADING_LABELS).map(([value, label]) => (

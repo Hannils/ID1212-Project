@@ -10,13 +10,6 @@ interface ElementProps {
   children: any
 }
 
-const elements = {
-  h1: (props: ElementProps) => <h1 {...props} />,
-  ul: (props: ElementProps) => <ul {...props} />,
-  ol: (props: ElementProps) => <ol {...props} />,
-  li: (props: ElementProps) => <li {...props} />,
-}
-
 export default function Element({ element, children }: RenderElementProps) {
   switch (element.type) {
     case 'paragraph':

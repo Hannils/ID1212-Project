@@ -1,13 +1,13 @@
+import { Socket } from 'dgram'
 import dotenv from 'dotenv'
+import { auth } from 'firebase-admin'
+import { UserRecord } from 'firebase-admin/auth'
 import { createEditor, Editor, Operation } from 'slate'
 import { Server } from 'socket.io'
 
 import { selectDocument, updateDocumentContent } from '../api/database'
 import { useAuth } from '../util/Misc'
 import { Element } from '../util/Types'
-import { UserRecord } from 'firebase-admin/auth'
-import { auth } from 'firebase-admin'
-import { Socket } from 'dgram'
 
 const editors = new Map<number, Editor>()
 const activeUsers = new Map<number, UserRecord[]>()
