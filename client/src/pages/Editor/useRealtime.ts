@@ -1,10 +1,10 @@
+import { User } from 'firebase/auth'
 import { useEffect, useRef, useState } from 'react'
 import { BaseRange, Descendant, NodeEntry, Operation, Range } from 'slate'
 import { io, Socket } from 'socket.io-client'
 
 import useUser from '../../util/auth'
 import { CustomOperation, ExternalCursorOperation } from './EditorTypes'
-import { User } from 'firebase/auth'
 
 interface RealtimeProps {
   documentId: number | undefined
@@ -13,8 +13,14 @@ interface RealtimeProps {
   onConnect?: CallableFunction
 }
 
-interface Collaborator extends User {
+export interface Collaborator extends User {
+  cursorPosition?: Range
+  color: string
+}
+
+interface CollaboratorWithCursor extends User {
   cursorPosition: Range
+  color: string
 }
 
 export default function useRealtime({
@@ -27,7 +33,7 @@ export default function useRealtime({
   const [loading, setLoading] = useState<boolean>(true)
   const [content, setContent] = useState<Descendant[]>([])
   const [socket, setSocket] = useState<null | Socket>(null)
-  const [people, setPeople] = useState<(User | Collaborator)[]>([])
+  const [people, setPeople] = useState<Collaborator[]>([])
 
   useEffect(() => {
     if (documentId === undefined) return
@@ -41,17 +47,18 @@ export default function useRealtime({
       console.log(socket.id)
     })
 
-    socket.on('join', (user: User) => {
+    socket.on('join', (user: Collaborator) => {
       console.log('User has joined', user)
       setPeople((people) => [...people, user])
     })
 
-    socket.on('sync-users', (users: User[]) => {
+    socket.on('sync-users', (users: Collaborator[]) => {
       console.log('Sync users', users)
+      console.log(users)
       setPeople(users)
     })
 
-    socket.on('left', (user) => {
+    socket.on('left', (user: User) => {
       console.log('Someone left', user)
       setPeople((people) => people.filter((person) => person.uid !== user.uid))
     })
@@ -104,13 +111,7 @@ export default function useRealtime({
   }, [documentId])
 
   const sendOperations = (allOperations: Array<CustomOperation>) => {
-    const operations = allOperations
-      .filter(({ remote }) => !remote)
-      .map((operation) =>
-        operation.type === 'set_selection'
-          ? { ...operation, type: 'set_external_selection', user: user?.uid }
-          : operation,
-      )
+    const operations = allOperations.filter(({ remote }) => !remote)
 
     if (operations.length === 0) return
 
@@ -118,17 +119,24 @@ export default function useRealtime({
   }
 
   const cursorDecorator = ([node, path]: NodeEntry): BaseRange[] => {
-    const peopleInNode = people
-      .filter((person): person is Collaborator =>
-        Object.keys(person).includes('cursorPosition'),
-      )
-      .filter((collaborator) => Range.includes(collaborator.cursorPosition, path))
+    const peopleInNode = people.filter(
+      (collaborator): collaborator is CollaboratorWithCursor => {
+        if (
+          collaborator.cursorPosition === null ||
+          collaborator.cursorPosition === undefined
+        )
+          return false
+        return Range.includes(collaborator.cursorPosition, path)
+      },
+    )
 
-    return peopleInNode.map(({ cursorPosition, displayName }) => ({
-      anchor: cursorPosition.anchor,
-      focus: cursorPosition.focus,
-      collaborator: displayName,
-    }))
+    return peopleInNode.map(({ cursorPosition, displayName, color }) => {
+      return {
+        anchor: cursorPosition.anchor,
+        focus: cursorPosition.focus,
+        collaborator: { displayName, color },
+      }
+    })
   }
 
   return {

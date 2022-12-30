@@ -25,15 +25,15 @@ import { User, UserProfile } from 'firebase/auth'
 import React, { useMemo, useState } from 'react'
 import {
   BaseEditor,
+  BaseRange,
   createEditor,
   Descendant,
   Editor,
   Element as SlateElement,
-  Operation,
-  Transforms,
-  Path,
   NodeEntry,
-  BaseRange,
+  Operation,
+  Path,
+  Transforms,
 } from 'slate'
 import { HistoryEditor, withHistory } from 'slate-history'
 import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react'
@@ -41,11 +41,12 @@ import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react'
 import UserAvatar from '../../components/UserAvatar'
 import { Document, ErrorResponse } from '../../util/Types'
 import ChangeName from './ChangeName'
-import Collaborator from './Collaborator'
+import CollaboratorModal from './CollaboratorModal'
 import { CustomOperation } from './EditorTypes'
 import Element from './Element'
 import Leaf from './Leaf'
 import Toolbar from './Toolbar'
+import { Collaborator } from './useRealtime'
 
 const EditorPaper = styled(Paper)({
   marginBlock: '16px',
@@ -64,7 +65,7 @@ interface EditorPageProps {
   editor: BaseEditor & ReactEditor & HistoryEditor
   onChange: (value: Descendant[], operations: CustomOperation[]) => void
   decorator?: (n: NodeEntry) => BaseRange[]
-  people: User[]
+  people: Collaborator[]
 }
 
 export default function EditorPage({
@@ -79,7 +80,7 @@ export default function EditorPage({
   const [showChangeNameModal, setShowChangeNameModal] = useState<boolean>(false)
   return (
     <Box>
-      <Collaborator
+      <CollaboratorModal
         document={document}
         open={showCollaboratorModal}
         onClose={() => setShowCollaboratorModal(false)}
@@ -104,7 +105,11 @@ export default function EditorPage({
           <AvatarGroup max={2}>
             {people.map((person) => (
               <Tooltip key={person.uid} title={person.displayName}>
-                <UserAvatar key={person.uid} user={person} />
+                <UserAvatar
+                  key={person.uid}
+                  user={person}
+                  sx={{ outline: `2px solid ${person.color}`, outlineOffset: '-2px' }}
+                />
               </Tooltip>
             ))}
           </AvatarGroup>

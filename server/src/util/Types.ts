@@ -7,6 +7,10 @@ export interface User {
   email: string
 }
 
+export interface Collaborator extends Omit<UserRecord, 'toJSON'> {
+  color: string
+}
+
 export interface Document {
   id: number
   title: string

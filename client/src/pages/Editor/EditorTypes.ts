@@ -8,7 +8,15 @@ import {
 import { HistoryEditor } from 'slate-history'
 import { ReactEditor } from 'slate-react'
 
-type Leaf = { text: string; bold?: true; italic?: true; collaborator?: string }
+type Leaf = {
+  text: string
+  bold?: true
+  italic?: true
+  collaborator?: {
+    displayName: string
+    color: string
+  }
+}
 
 type Paragraph = { type: 'paragraph'; children: Leaf[] }
 type H1 = { type: 'h1'; children: Leaf[] }

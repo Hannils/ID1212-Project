@@ -31,7 +31,9 @@
     ],
     "plugins": [
       "simple-import-sort",
-      "prettier"
+      "eslint-plugin-import",
+      "prettier",
+      "unused-imports"
     ],
     "rules": {
       "prettier/prettier": [
@@ -42,6 +44,7 @@
         }
       ],
       "@typescript-eslint/explicit-function-return-type": "off",
+      "unused-imports/no-unused-imports": "warn",
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error"
     }

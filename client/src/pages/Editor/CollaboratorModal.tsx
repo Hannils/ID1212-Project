@@ -36,7 +36,7 @@ interface CollaboratorProps extends DialogProps {
   document: Document
 }
 
-export default function Collaborator(props: CollaboratorProps) {
+export default function CollaboratorModal(props: CollaboratorProps) {
   const { open, onClose, document } = props
   const [user] = useUser()
   const {

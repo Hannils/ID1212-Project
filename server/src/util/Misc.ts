@@ -31,3 +31,7 @@ export function requireAuth(cb: CallableFunction) {
     cb(req, res, next)
   }
 }
+
+export function makeRandomColor() {
+  return `hsl(${Math.floor(Math.random() * 360)}deg, 30%, 50%)`
+}

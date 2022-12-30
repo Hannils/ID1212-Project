@@ -6,12 +6,12 @@ import { createEditor, Editor, Operation } from 'slate'
 import { Server } from 'socket.io'
 
 import { selectDocument, updateDocumentContent } from '../api/database'
-import { useAuth } from '../util/Misc'
-import { CustomOperation, Element } from '../util/Types'
+import { makeRandomColor, useAuth } from '../util/Misc'
+import { Collaborator, CustomOperation, Element } from '../util/Types'
 
 const editors = new Map<number, Editor>()
-const activeUsers = new Map<number, UserRecord[]>()
-
+const activeUsers = new Map<number, Collaborator[]>()
+//if path !== [0, 0] removing bold gives error (Cannot find descendant at path [0,1], bold with selections doesn't work at all)
 export default function initSocket() {
   const io = new Server({
     cors: {
@@ -81,9 +81,10 @@ export default function initSocket() {
           console.error('Error error123321')
           return
         }
+        const collaborator: Collaborator = { ...user, color: makeRandomColor() }
         socket.emit('sync-users', users)
-        socket.broadcast.to(roomName).emit('join', user)
-        users.push(user)
+        socket.broadcast.to(roomName).emit('join', collaborator)
+        users.push(collaborator)
       })
 
     socket.on('disconnecting', () => {
@@ -93,7 +94,7 @@ export default function initSocket() {
         .then((user) => {
           const users = activeUsers.get(documentId)
           if (users === undefined) {
-            console.error('Error error123321')
+            console.error('Error 3223')
             return
           }
           activeUsers.set(
@@ -105,18 +106,33 @@ export default function initSocket() {
     })
 
     socket.on('change', (operations: CustomOperation[]) => {
-      console.log('Change', operations)
       const room = editors.get(documentId)
       if (room === undefined) {
         // Handle Error
         return
       }
 
-      operations
-        .filter(({ type }) => type !== 'set_external_selection')
-        .forEach((operation) => room.apply(operation as Operation))
+      operations.forEach((operation) => room.apply(operation as Operation))
 
-      socket.broadcast.to(roomName).emit('change', operations)
+      for (let i = 0; i < operations.length; i++) {
+        if (['remove_text', 'insert_text'].includes(operations[i].type)) {
+          operations.splice(i + 1, 0, {
+            type: 'set_external_selection',
+            user: userId,
+            properties: room.selection as unknown as Range,
+            newProperties: room.selection as unknown as Range,
+          })
+        }
+      }
+
+      socket.broadcast.to(roomName).emit(
+        'change',
+        operations.map((operation) =>
+          operation.type === 'set_selection'
+            ? { ...operation, type: 'set_external_selection', user: userId }
+            : operation,
+        ),
+      )
     })
   })
 

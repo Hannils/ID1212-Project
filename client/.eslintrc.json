@@ -40,7 +40,9 @@
     ],
     "plugins": [
       "simple-import-sort",
-      "prettier"
+      "eslint-plugin-import",
+      "prettier",
+      "unused-imports"
     ],
     "rules": {
       "prettier/prettier": [
@@ -54,6 +56,7 @@
       "jsx-a11y/accessible-emoji": "off",
       "react/prop-types": "off",
       "@typescript-eslint/explicit-function-return-type": "off",
+      "unused-imports/no-unused-imports": "warn",
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
       "jsx-a11y/anchor-is-valid": [

@@ -34,29 +34,13 @@ export default function Toolbar() {
   const editor = useSlate()
   const { selection } = editor
 
-  const [marks, setMarks] = useState<Omit<Text, 'text'>>({})
   const [activeBlocks, setActiveBlocks] = useState<Array<Element['type']>>([])
 
   useEffect(() => {
     if (!selection) return
 
-    const marks = Editor.marks(editor)
-    if (marks !== null) setMarks(marks)
-
     setActiveBlocks(getActiveBlocks(editor))
   }, [selection, editor])
-
-  const updateMarks = (newMarks: Marks[]) => {
-    const currentMarks = Object.keys(marks) as Marks[]
-
-    const [mark] = currentMarks
-      .filter((x) => !newMarks.includes(x))
-      .concat(newMarks.filter((x) => !currentMarks.includes(x)))
-    toggleMark(editor, mark)
-    const newMarksObj: Omit<Text, 'text'> = {}
-    newMarks.forEach((mark) => (newMarksObj[mark] = true))
-    setMarks(newMarksObj)
-  }
 
   const updateBlock = (newBlock: Element['type']) => {
     Transforms.setNodes<SlateElement>(editor, {
@@ -77,19 +61,6 @@ export default function Toolbar() {
           borderBottom: `1px solid ${theme.palette.primary.main}`,
         })}
       >
-        <ToggleButtonGroup
-          aria-label="text formatting"
-          value={Object.keys(marks)}
-          onChange={(_, value) => updateMarks(value as Array<Marks>)}
-        >
-          <ToggleButton aria-label="bold" value="bold">
-            <FormatBoldIcon />
-          </ToggleButton>
-          <ToggleButton aria-label="italic" value="italic">
-            <FormatItalicIcon />
-          </ToggleButton>
-        </ToggleButtonGroup>
-
         <ToggleButtonGroup
           exclusive
           aria-label="Typography"
