@@ -70,11 +70,11 @@ export interface DatabaseDocument {
 }
 
 const client = new Client({
-  host: 'localhost',
+  host: '172.20.0.2',
   user: 'postgres',
-  password: process.env.PGPASSWORD,
+  password: 'docker',
   port: 5432,
-  database: 'realtimeDocumentEditor',
+  database: 'realtime-document-db',
 })
 
 export async function initDatabase() {
