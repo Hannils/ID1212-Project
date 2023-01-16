@@ -4,6 +4,7 @@ import { auth } from 'firebase-admin'
 import { UserRecord } from 'firebase-admin/auth'
 import { createEditor, Editor, Operation } from 'slate'
 import { Server } from 'socket.io'
+import { getSystemErrorMap } from 'util'
 
 import { selectDocument, updateDocumentContent } from '../api/database'
 import { makeRandomColor, useAuth } from '../util/Misc'
@@ -111,8 +112,11 @@ export default function initSocket() {
         // Handle Error
         return
       }
-
-      operations.forEach((operation) => room.apply(operation as Operation))
+      try {
+        operations.forEach((operation) => room.apply(operation as Operation))
+      } catch (e: any) {
+        console.error(e.message)
+      }
 
       for (let i = 0; i < operations.length; i++) {
         if (['remove_text', 'insert_text'].includes(operations[i].type)) {

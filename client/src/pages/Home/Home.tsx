@@ -106,43 +106,51 @@ export default function Home() {
           ))}
         </List>
       ) : documentsQuery.isSuccess ? (
-        <List disablePadding>
-          {documentsQuery.data.map((doc) => (
-            <Fragment key={doc.id}>
-              <ListItem
-                secondaryAction={
-                  <>
-                    <Tooltip title="Rename">
-                      <IconButton
-                        edge="end"
-                        sx={{ mr: '4px' }}
-                        onClick={() => setNameModal(doc)}
-                      >
-                        <EditRounded />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <IconButton
-                        edge="end"
-                        onClick={() => setShowDeleteDocumentModal(doc)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </>
-                }
-                disablePadding
-              >
-                <ListItemButton onClick={() => openDocument(doc.id)}>
-                  <ListItemText
-                    primary={doc.title}
-                    secondary={doc.created_at.toLocaleDateString('sv-SE')}
-                  />
-                </ListItemButton>
-              </ListItem>
-            </Fragment>
-          ))}
-        </List>
+        documentsQuery.data.length === 0 ? (
+          <div>
+            <Typography mt={2} mb={6}>
+              Empty
+            </Typography>
+          </div>
+        ) : (
+          <List disablePadding>
+            {documentsQuery.data.map((doc) => (
+              <Fragment key={doc.id}>
+                <ListItem
+                  secondaryAction={
+                    <>
+                      <Tooltip title="Rename">
+                        <IconButton
+                          edge="end"
+                          sx={{ mr: '4px' }}
+                          onClick={() => setNameModal(doc)}
+                        >
+                          <EditRounded />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          edge="end"
+                          onClick={() => setShowDeleteDocumentModal(doc)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  }
+                  disablePadding
+                >
+                  <ListItemButton onClick={() => openDocument(doc.id)}>
+                    <ListItemText
+                      primary={doc.title}
+                      secondary={doc.created_at.toLocaleDateString('sv-SE')}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              </Fragment>
+            ))}
+          </List>
+        )
       ) : (
         documentsQuery.isError && (
           <Alert severity="error">
@@ -161,32 +169,40 @@ export default function Home() {
           ))}
         </List>
       ) : sharedQuery.isSuccess ? (
-        <List disablePadding>
-          {sharedQuery.data.map((doc) => (
-            <Fragment key={doc.id}>
-              <ListItem
-                secondaryAction={
-                  <Tooltip title="Remove me from document">
-                    <IconButton
-                      edge="end"
-                      onClick={() => setShowDeleteDocumentModal(doc)}
-                    >
-                      <PersonOffRounded />
-                    </IconButton>
-                  </Tooltip>
-                }
-                disablePadding
-              >
-                <ListItemButton onClick={() => openDocument(doc.id)}>
-                  <ListItemText
-                    primary={doc.title}
-                    secondary={new Date().toLocaleDateString('sv-SE')}
-                  />
-                </ListItemButton>
-              </ListItem>
-            </Fragment>
-          ))}
-        </List>
+        sharedQuery.data.length === 0 ? (
+          <div>
+            <Typography mt={2} mb={6}>
+              Empty
+            </Typography>
+          </div>
+        ) : (
+          <List disablePadding>
+            {sharedQuery.data.map((doc) => (
+              <Fragment key={doc.id}>
+                <ListItem
+                  secondaryAction={
+                    <Tooltip title="Remove me from document">
+                      <IconButton
+                        edge="end"
+                        onClick={() => setShowDeleteDocumentModal(doc)}
+                      >
+                        <PersonOffRounded />
+                      </IconButton>
+                    </Tooltip>
+                  }
+                  disablePadding
+                >
+                  <ListItemButton onClick={() => openDocument(doc.id)}>
+                    <ListItemText
+                      primary={doc.title}
+                      secondary={new Date().toLocaleDateString('sv-SE')}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              </Fragment>
+            ))}
+          </List>
+        )
       ) : (
         sharedQuery.isError && (
           <Alert severity="error">
